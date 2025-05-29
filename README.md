@@ -1,2 +1,2 @@
 # MEPCE Revit Tools
-MEPCE tools for Revit
+MEPCE tools for pyRevit
