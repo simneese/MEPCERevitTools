@@ -16,7 +16,7 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
 ## Installation
 
 - Install [pyRevit](https://github.com/pyrevitlabs/pyRevit/releases)
-- Download MEPCE_Tools_Extension.exe : [Releases](https://github.com/simneese/MEPCERevitTools/releases)
+- Download MEPCE_Tools_Extension.exe : 📦[MEPCE_Tools_Extension.exe](https://github.com/simneese/MEPCERevitTools/releases/download/v1.0.0/MEPCE_Tools_Extension.exe)
 - Run MEPCE_Tools_Extension.exe
 - Navigate to Extensions menu in the pyRevit toolbar:
   
