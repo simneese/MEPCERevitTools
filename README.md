@@ -26,6 +26,9 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
   
    <img src="https://github.com/user-attachments/assets/9ba0a7eb-7460-4b70-a18e-3fd87962022b" alt="Alt Text" width="500">
 
+- Click "Reload":
+
+   <img src="https://github.com/user-attachments/assets/7366bc43-d24b-43c5-9ce6-8e45a5a18c87" alt="Alt Text" width="500">
 - Done!
 
 
