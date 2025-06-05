@@ -32,6 +32,10 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
 - Done!
 
 
+## How to Update
+
+- Update the toolbar using the "Update" button on the pyRevit tab. It is located right next to the "Extensions" button in the dropdown used to get to the pyRevit settings.
+
 
 ## Roadmap
 
