@@ -1,0 +1,14 @@
+{
+    "builtin": "False",
+    "default_enabled": "True",
+    "type": "extension",
+    "rocket_mode_compatible": "False",
+    "name": "MEPCE Tools",
+    "description": "Extensions for PyRevit",
+    "author": "Simeon Neese",
+    "author_profile": "https://github.com/gtalarico",
+    "url": "https://github.com/simneese/MEPCERevitTools.git",
+    "website": "",
+    "image": "",
+    "dependencies": []
+}
