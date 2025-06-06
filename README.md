@@ -22,7 +22,7 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
   
   <img src="https://github.com/user-attachments/assets/cba76431-a299-4696-acf1-84b91ea5cee3" alt="Alt Text" width="500">
 
-- Find MEPCE Tools in the menu and install:
+- Find MEPCE Tools in the menu and install (make sure you click the drop down with the install directory - it is easy to miss):
   
    <img src="https://github.com/user-attachments/assets/9ba0a7eb-7460-4b70-a18e-3fd87962022b" alt="Alt Text" width="500">
 
