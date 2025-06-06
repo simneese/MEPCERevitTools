@@ -41,7 +41,9 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
 
 - Help panel for tutorials and bug reporting
 
-- Re-create my Dynamo scripts in Python so they can be used more easily
+- Add my Dynamo scripts to the toolbar
+
+- Remake Dynamo scripts in python
 
 
 ## Authors
