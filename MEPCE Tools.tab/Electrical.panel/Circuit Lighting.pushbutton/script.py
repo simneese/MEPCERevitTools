@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 __title__ = "Circuit Lighting"
-__highlight__ = "new"
-__doc__ = """Version = 1.0
-Date    = 2025.06.04
+__highlight__ = "updated"
+__doc__ = """Version = 1.1
+Date    = 2025.06.09
 _________________________________________________________________
 Description:
 This button will circuit lights based on filled regions.
@@ -12,6 +12,10 @@ How-to:
 -> Click button
 _________________________________________________________________
 Last update:
+- [2025.06.09] - 1.1 Fixed bug which caused elements to be
+                     fetched incorrectly due to variable names.
+                     Error messages now print in addition to
+                     sending an alert.
 - [2025.06.04] - 1.0 RELEASE
 _________________________________________________________________
 To-Do:
@@ -150,7 +154,7 @@ assoccircuits = []
 
 if allcircuits:
     for param in markparam:
-        assoc = []
+        assoc = None
         for circuit in allcircuits:
             if param.AsString() == str(circuit.Id):
                 assoc = circuit
@@ -168,9 +172,9 @@ with Transaction(doc,'Create Lighting Circuits') as t:
 
     for group_index in range(len(circuitgroups)):
         group = circuitgroups[group_index]                                      # Get group
-        print 'Starting Group {}'.format(group_index)
+        #print 'Starting Group {}'.format(group_index)
         if not group:                                                           # Check if the filled region is empty
-            print "[Group {}] Empty group, skipping.".format(group_index)
+            #print "[Group {}] Empty group, skipping.".format(group_index)
             comparam[group_index].Set('Group {}'.format(group_index))
             markparam[group_index].Set('')
             continue
@@ -192,7 +196,7 @@ with Transaction(doc,'Create Lighting Circuits') as t:
             if hasattr(mep, "ElectricalSystems") and mep.ElectricalSystems and list(mep.ElectricalSystems):
                 continue"""
             a = list(mep.GetElectricalSystems())
-            print a
+
             if a:
                 if str(a[0].Id) == markparam[group_index].AsString():
                     continue
@@ -203,6 +207,7 @@ with Transaction(doc,'Create Lighting Circuits') as t:
                         a[0].RemoveFromCircuit(setelement1)
                     except:
                         alert("Could not remove element ID {} from circuit ID {}".format(elem.Id.IntegerValue, a[0].Id))
+                        print("Could not remove element ID {} from circuit ID {}".format(elem.Id.IntegerValue, a[0].Id))
                         continue
 
             valid_elements.append(elem)
@@ -215,12 +220,14 @@ with Transaction(doc,'Create Lighting Circuits') as t:
                 try:
                     circ.AddToCircuit(setelement)
                 except:
-                    alert("[Group {}] Could not add element ID {}".format(group_index, elem.Id.IntegerValue))
+                    alert("[Group {}] Could not add element ID {}".format(group_index, element.Id.IntegerValue))
+                    print("[Group {}] Could not add element ID {}".format(group_index, element.Id.IntegerValue))
                     continue
 
         else:
             if len(valid_elements) < 1:
                 alert("[Group {}] No valid elements found.".format(group_index))
+                print("[Group {}] No valid elements found.".format(group_index))
                 continue
 
             main_elem = valid_elements[0]
@@ -229,18 +236,33 @@ with Transaction(doc,'Create Lighting Circuits') as t:
 
             try:
                 circuit = ElectricalSystem.Create(doc, net_ids, ElectricalSystemType.PowerCircuit)
+                if type(circuit) is NoneType:
+                    net_ids.Add(valid_elements[1].Id)
+                    circuit = ElectricalSystem.Create(doc, net_ids, ElectricalSystemType.PowerCircuit)
+                    index_start = 2
+                    if type(circuit) is NoneType:
+                        alert('[Group {}] Could not create circuit. Element ID: {}, SystemType: {}'.format(group_index, main_elem.Id, ElectricalSystemType.PowerCircuit))
+                        print('[Group {}] Could not create circuit. Element ID: {}, SystemType: {}'.format(group_index, main_elem.Id, ElectricalSystemType.PowerCircuit))
+                        continue
+                else:
+                    index_start = 1
+
                 comparam[group_index].Set("Group {}".format(group_index))
                 markparam[group_index].Set(str(circuit.Id))
 
-                for elem in valid_elements[1:]:
-                    set = ElementSet()
-                    set.Insert(elem)
+                for elem in valid_elements[index_start:]:
+                    element_set = ElementSet()
+                    element_set.Insert(elem)
                     try:
-                        circuit.AddToCircuit(set)
+                        circuit.AddToCircuit(element_set)
                     except:
                         alert("[Group {}] Could not add element ID {}".format(group_index, elem.Id.IntegerValue))
+                        print("[Group {}] Could not add element ID {}".format(group_index, elem.Id.IntegerValue))
                         continue
             except Exception as e:
                 alert("[Group {}] Exception: {}".format(group_index, e))
+                print("[Group {}] Exception: {}".format(group_index, e))
 
     t.Commit()
+
+alert("Done!", title="Circuit Lighting", ok=True)
