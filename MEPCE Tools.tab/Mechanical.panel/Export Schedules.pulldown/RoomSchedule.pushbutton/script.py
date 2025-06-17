@@ -85,6 +85,7 @@ try:
 except:
     alert("Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned")
     print "Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned"
+    sys.exit()
 
 if not rooms:
     alert("Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned")
