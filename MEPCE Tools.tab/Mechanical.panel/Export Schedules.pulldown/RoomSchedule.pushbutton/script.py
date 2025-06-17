@@ -81,6 +81,11 @@ date = now.strftime("%y%m%d")
 # Get filled regions with room numbers
 rooms = get_rooms()
 
+if not rooms:
+    alert("There are not filled regions created with the required parameters!")
+    print"There are not filled regions created with the required parameters!"
+    exit
+
 #  _____
 # |____ |
 #     / /
