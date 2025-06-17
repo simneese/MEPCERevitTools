@@ -56,7 +56,7 @@ doc    = __revit__.ActiveUIDocument.Document    #type: Document
 # ╠╣ ║ ║║║║║   ║ ║║ ║║║║╚═╗
 # ╚  ╚═╝╝╚╝╚═╝ ╩ ╩╚═╝╝╚╝╚═╝
 #==================================================
-from Snippets._filledregions import get_rooms
+from Snippets._filledregions import get_rooms, get_room_data
 
 # ╔╦╗╔═╗╦╔╗╔
 # ║║║╠═╣║║║║
@@ -99,30 +99,8 @@ if not rooms:
 # .___/ /
 # \____/
 # Get room data
-roomdata = []
-paramslookup = ["MEPCE Room Number","MEPCE Room Name","MEPCE HVAC Zone","Area","MEPCE Room Airflow","MEPCE Room Ventilation"]
-paramsnames = ["Room Number","Room Name","HVAC Zone","Area (ft^2)","Supply Airflow (CFM)","Ventilation (CFM)"]
-for room in rooms:
-    roomparams = dict()
-    for i in range(len(paramslookup)):
-        param = paramslookup[i]
-        exists = room.LookupParameter(param)
-        if type(exists) is not NoneType:
-            paramtype = str(exists.StorageType)
-            if paramtype == "String":
-                roomparams.update({paramsnames[i]: room.LookupParameter(param).AsString()})
-            if paramtype == "Double":
-                if i == 4 or i == 5:
-                    roomparams.update({paramsnames[i]: room.LookupParameter(param).AsDouble() * 60})
-                else:
-                    roomparams.update({paramsnames[i]: room.LookupParameter(param).AsDouble()})
-        else:
-            roomparams.update({paramsnames[i]: None})
-    if roomparams['Area (ft^2)']:
-        areaflow = roomparams['Supply Airflow (CFM)']/roomparams['Area (ft^2)']
-        roomparams.update({'Supply / Area (CFM/ft^2)': areaflow})
-    roomdata.append(roomparams)
-paramsnames.append('Supply / Area (CFM/ft^2)')
+roomdata = get_room_data(rooms)[0]
+paramsnames = get_room_data(rooms)[1]
 
 #    ___
 #   /   |
@@ -133,11 +111,14 @@ paramsnames.append('Supply / Area (CFM/ft^2)')
 # Format lists for excel
 dataexport = []
 for param in paramsnames:
-    paramvals = []
-    paramvals.append(param)
-    for room in roomdata:
-        paramvals.append(room[param])
-    dataexport.append(paramvals)
+    if param == "Room Number" or param == "Room Name":
+        continue
+    else:
+        paramvals = []
+        paramvals.append(param)
+        for room in roomdata:
+            paramvals.append(room[param])
+        dataexport.append(paramvals)
 export = dataexport
 
 #  _____
@@ -158,7 +139,12 @@ except:
 
 file_name = "{} - Room Schedule.xlsx".format(date)
 output_file = os.path.join(desktop_path,file_name)
-workbook = xlsxwriter.Workbook(output_file, {'strings_to_numbers':False})
+try:
+    workbook = xlsxwriter.Workbook(output_file, {'strings_to_numbers':False})
+except:
+    alert("Could not open workbook! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open")
+    print "Could not open workbook! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open"
+    sys.exit()
 worksheet = workbook.add_worksheet(worksheetName)
 
 row = 0
@@ -171,6 +157,11 @@ for item in export:
     col += 1
     row = 0
 
-workbook.close()
+try:
+    workbook.close()
+except:
+    alert("Could not open workbook! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open")
+    print "Could not open workbook! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open"
+    sys.exit()
 
 forms.alert("Schedule saved to Desktop as:\n{}.".format(file_name),title="Script complete",warn_icon=False)

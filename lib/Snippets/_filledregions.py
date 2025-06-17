@@ -116,3 +116,51 @@ def get_rooms():
             else:
                 filtregions.append(region)
     return filtregions
+
+#  _____        _    ______                           ______         _
+# |  __ \      | |   | ___ \                          |  _  \       | |
+# | |  \/  ___ | |_  | |_/ /  ___    ___   _ __ ___   | | | |  __ _ | |_   __ _
+# | | __  / _ \| __| |    /  / _ \  / _ \ | '_ ` _ \  | | | | / _` || __| / _` |
+# | |_\ \|  __/| |_  | |\ \ | (_) || (_) || | | | | | | |/ / | (_| || |_ | (_| |
+#  \____/ \___| \__| \_| \_| \___/  \___/ |_| |_| |_| |___/   \__,_| \__| \__,_|
+# Get MEPCE room parameters from room
+
+def get_room_data(rooms):
+    roomdata = []
+    paramslookup = ["MEPCE Room Number", "MEPCE Room Name", "MEPCE HVAC Zone", "Area", "MEPCE Room Airflow",
+                    "MEPCE Room Ventilation"]
+    paramsnames = ["Room Number", "Room Name", "HVAC Zone", "Area (ft^2)", "Supply Airflow (CFM)", "Ventilation (CFM)"]
+    for room in rooms:
+        roomparams = dict()
+        for i in range(len(paramslookup)):
+            param = paramslookup[i]
+            exists = room.LookupParameter(param)
+            if type(exists) is not NoneType:
+                paramtype = str(exists.StorageType)
+                if paramtype == "String":
+                    roomparams.update({paramsnames[i]: room.LookupParameter(param).AsString()})
+                if paramtype == "Double":
+                    if i == 4 or i == 5:
+                        roomparams.update({paramsnames[i]: room.LookupParameter(param).AsDouble() * 60})
+                    else:
+                        roomparams.update({paramsnames[i]: room.LookupParameter(param).AsDouble()})
+            else:
+                roomparams.update({paramsnames[i]: None})
+
+        if roomparams['Area (ft^2)']:
+            areaflow = roomparams['Supply Airflow (CFM)'] / roomparams['Area (ft^2)']
+        else:
+            areaflow = 0
+        roomparams.update({'Supply / Area (CFM/ft^2)': areaflow})
+
+        if roomparams['Room Number'] and roomparams['Room Name']:
+            combname = roomparams['Room Number'] + " " + roomparams['Room Name']
+        else:
+            combname = None
+        roomparams.update({'Room Name and Number': combname})
+
+        roomdata.append(roomparams)
+
+    paramsnames.append('Supply / Area (CFM/ft^2)')
+    paramsnames.insert(0,'Room Name and Number')
+    return [roomdata,paramsnames] # Returns list of dictionaries and list of dictionary keys
