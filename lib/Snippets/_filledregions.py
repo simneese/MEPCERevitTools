@@ -108,9 +108,11 @@ def get_rooms():
     allfilledregions = list(FilteredElementCollector(doc).OfClass(FilledRegion))
     filtregions = []
     for region in allfilledregions:
-        roomnum = region.LookupParameter("MEPCE Room Number").AsString()
-        if type(roomnum) is NoneType:
-            continue
-        else:
-            filtregions.append(region)
+        paramexists = region.LookupParameter("MEPCE Room Number")
+        if paramexists:
+            roomnum = region.LookupParameter("MEPCE Room Number").AsString()
+            if type(roomnum) is NoneType:
+                continue
+            else:
+                filtregions.append(region)
     return filtregions

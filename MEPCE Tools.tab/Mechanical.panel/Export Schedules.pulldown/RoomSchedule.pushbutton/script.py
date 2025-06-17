@@ -79,9 +79,13 @@ date = now.strftime("%y%m%d")
 # ./ /___
 # \_____/
 # Get filled regions with room numbers
-rooms = get_rooms()
+try:
+    rooms = get_rooms()
+except:
+    alert("Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned")
+    print "Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned"
 
-if len(rooms) < 1 :
+if not rooms:
     alert("There are no filled regions created with the required parameters!")
     print"There are no filled regions created with the required parameters!"
     exit
