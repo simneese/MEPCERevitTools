@@ -95,3 +95,22 @@ def get_faces(filledregions):
                     continue
         normalfaces.append(normfaces)
     return normalfaces
+
+#  _____        _    ______
+# |  __ \      | |   | ___ \
+# | |  \/  ___ | |_  | |_/ /  ___    ___   _ __ ___   ___
+# | | __  / _ \| __| |    /  / _ \  / _ \ | '_ ` _ \ / __|
+# | |_\ \|  __/| |_  | |\ \ | (_) || (_) || | | | | |\__ \
+#  \____/ \___| \__| \_| \_| \___/  \___/ |_| |_| |_||___/
+# This function will get filled regions with room number parameter
+
+def get_rooms():
+    allfilledregions = list(FilteredElementCollector(doc).OfClass(FilledRegion))
+    filtregions = []
+    for region in allfilledregions:
+        roomnum = region.LookupParameter("MEPCE Room Number").AsString()
+        if type(roomnum) is NoneType:
+            continue
+        else:
+            filtregions.append(region)
+    return filtregions

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 __title__ = "Circuit Lighting"
-__highlight__ = "updated"
 __doc__ = """Version = 1.1
 Date    = 2025.06.09
 _________________________________________________________________
@@ -65,7 +64,6 @@ from Snippets._filledregions import get_faces
 # ║║║╠═╣║║║║
 # ╩ ╩╩ ╩╩╝╚╝ MAIN
 #==================================================
-# START CODE HERE
 
 #  __
 # /  |
