@@ -81,7 +81,7 @@ date = now.strftime("%y%m%d")
 # Get filled regions with room numbers
 rooms = get_rooms()
 
-if not rooms:
+if len(rooms) < 1 :
     alert("There are no filled regions created with the required parameters!")
     print"There are no filled regions created with the required parameters!"
     exit
@@ -112,8 +112,9 @@ for room in rooms:
                     roomparams.update({paramsnames[i]: room.LookupParameter(param).AsDouble()})
         else:
             roomparams.update({paramsnames[i]: None})
-    areaflow = roomparams['Supply Airflow (CFM)']/roomparams['Area (ft^2)']
-    roomparams.update({'Supply / Area (CFM/ft^2)': areaflow})
+    if roomparams['Area (ft^2)']:
+        areaflow = roomparams['Supply Airflow (CFM)']/roomparams['Area (ft^2)']
+        roomparams.update({'Supply / Area (CFM/ft^2)': areaflow})
     roomdata.append(roomparams)
 paramsnames.append('Supply / Area (CFM/ft^2)')
 
