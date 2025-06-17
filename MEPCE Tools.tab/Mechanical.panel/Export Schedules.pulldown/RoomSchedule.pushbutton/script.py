@@ -160,8 +160,8 @@ for item in export:
 try:
     workbook.close()
 except:
-    alert("Could not open workbook! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open")
-    print "Could not open workbook! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open"
+    alert("Could not export data! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open")
+    print "Could not export data! Possible causes:\n- Duplicate Room Schedule workbook exists on Desktop and is open"
     sys.exit()
 
 forms.alert("Schedule saved to Desktop as:\n{}.".format(file_name),title="Script complete",warn_icon=False)
