@@ -86,9 +86,9 @@ except:
     print "Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned"
 
 if not rooms:
-    alert("There are no filled regions created with the required parameters!")
-    print"There are no filled regions created with the required parameters!"
-    exit
+    alert("Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned")
+    print "Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned"
+    exit()
 
 #  _____
 # |____ |
@@ -152,7 +152,7 @@ try:
 except:
     alert("Could not find Desktop path!")
     print "Could not find Desktop path!"
-    exit
+    exit()
 
 file_name = "{} - Room Schedule.xlsx".format(date)
 output_file = os.path.join(desktop_path,file_name)
