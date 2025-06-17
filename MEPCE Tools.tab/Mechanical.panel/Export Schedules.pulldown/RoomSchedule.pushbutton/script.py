@@ -28,6 +28,7 @@ from pyrevit import revit, DB, forms, script
 
 # libraries
 import os
+import sys
 import xlsxwriter
 from datetime import datetime
 
@@ -88,7 +89,7 @@ except:
 if not rooms:
     alert("Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned")
     print "Could not get rooms. Possible causes:\n- No filled regions created\n- Parameters not imported\n- No room numbers assigned"
-    exit()
+    sys.exit()
 
 #  _____
 # |____ |
@@ -152,7 +153,7 @@ try:
 except:
     alert("Could not find Desktop path!")
     print "Could not find Desktop path!"
-    exit()
+    sys.exit()
 
 file_name = "{} - Room Schedule.xlsx".format(date)
 output_file = os.path.join(desktop_path,file_name)
