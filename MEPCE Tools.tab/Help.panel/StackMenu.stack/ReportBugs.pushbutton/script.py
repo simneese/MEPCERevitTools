@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __title__ = "Report Bugs"
-__highlight__ = "new"
+#__highlight__ = "new"
 __doc__ = """Version = 1.0
 Date    = 2025.06.16
 _________________________________________________________________
@@ -112,7 +112,7 @@ class ReportBugWindow(Window):
 
         full_path = os.path.join(folder, filename)
 
-        content = u"BUG TITLE:\n{}\n\nDESCRIPTION:\n{}\n\nERROR MESSAGE:\n{}".format(title, desc, error)
+        content = u"BUG TITLE:\n{}\n\nTIMESTAMP:\n{}\n\nDESCRIPTION:\n{}\n\nERROR MESSAGE:\n{}".format(title, timestamp, desc, error)
         File.WriteAllText(full_path, content)
 
         MessageBox.Show(

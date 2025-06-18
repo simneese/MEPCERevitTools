@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 __title__   = "Room Schedule"
-__highlight__ = "new"
+#__highlight__ = "new"
 __doc__     = """Version = 1.0
 Date    = 2025.06.17
 _________________________________________________________________
 Description:
-
 Export a room schedule with associated zoning data.
 _________________________________________________________________
 How-to:
