@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 __title__ = "Rename Sheets"
-#__highlight__ = "new"
-__doc__ = """Version = 1.0
-Date    = 2025.05.29
+__highlight__ = "updated"
+__doc__ = """Version = 1.1
+Date    = 2025.06.18
 _________________________________________________________________
 Description:
 Rename Sheets in Revit using find/replace logic.
@@ -15,6 +15,7 @@ How-to:
 -> Rename Sheets
 _________________________________________________________________
 Last update:
+- [2025.06.18] - Will now automatically add a space after the prefix
 - [2025.05.29] - 1.0 RELEASE
 _________________________________________________________________
 Author: Simeon Neese"""
@@ -89,7 +90,7 @@ form = FlexForm('Title', components)
 form.show()
 
 user_inputs = form.values
-prefix      = user_inputs['prefix']
+prefix      = user_inputs['prefix'] + " "
 find        = user_inputs['find']
 replace     = user_inputs['replace']
 suffix      = user_inputs['suffix']
