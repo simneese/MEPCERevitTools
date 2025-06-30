@@ -263,4 +263,4 @@ with Transaction(doc,'Create Lighting Circuits') as t:
 
     t.Commit()
 
-alert("Done!", title="Circuit Lighting", ok=True)
+alert("Done!", title="Circuit Lighting", warn_icon=False)
