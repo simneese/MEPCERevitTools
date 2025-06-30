@@ -5,6 +5,9 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
 
 ## Features
 
+#### 🔧Mechanical Tools
+- Clash Detection 💥
+    - Checks for clashes between selected cateogries. Includes filters for system types.
 #### ⚡Electrical Tools
 - Circuit Lighting 💡
     - Groups lights and adds them to a circuit based on filled region zoning
