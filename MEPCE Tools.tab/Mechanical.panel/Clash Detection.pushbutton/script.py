@@ -21,6 +21,9 @@ Last update:
 _________________________________________________________________
 To-Do:
 - Add more filter options
+- Add conduit category
+- Make sure clash detection is not checking the same element
+against itself
 _________________________________________________________________
 Author: Simeon Neese"""
 
@@ -197,7 +200,7 @@ for pst in pipingsystemtypes:
         name = pst.get_Parameter(BuiltInParameter.SYMBOL_NAME_PARAM).AsString()
         d_pipingstypes.update({name: pst})
         l_pipingsnames.append(name)
-        print name
+        #print name
     except Exception as e:
         print("Error accessing name:", e)
         print("Offending object:", pst)
@@ -211,7 +214,7 @@ for dct in ductsystemtypes:
         name = dct.get_Parameter(BuiltInParameter.SYMBOL_NAME_PARAM).AsString()
         d_ductstypes.update({name: dct})
         l_ductsnames.append(name)
-        print name
+        #print name
     except Exception as e:
         print("Error accessing name:", e)
         print("Offending object:", dct)
@@ -441,3 +444,10 @@ if sviewfilt == 'Yes':
                 except:
                     continue
         t.Commit()
+else:
+    alert(
+        msg='Cannot draw clash geometry.',
+        title='Clash Geometry',
+        sub_msg='"Filter by Active View" must be enabled to draw clash geometry',
+        warn_icon=False
+    )
