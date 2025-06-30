@@ -407,36 +407,37 @@ print 'Intersecting: {}'.format(len(results_keys))
 plane = active_view.SketchPlane.GetPlane()
 origin = plane.Origin
 normal = plane.Normal
-with Transaction(doc, "Create Detail Curve") as t:
-    t.Start()
-    for solid in clash_geometry:
-        edges = []
-        for face in solid.Faces:
-            for loop in face.GetEdgesAsCurveLoops():
-                for curve in loop:
-                    edges.append(curve)
+if sviewfilt == 'Yes':
+    with Transaction(doc, "Create Detail Curve") as t:
+        t.Start()
+        for solid in clash_geometry:
+            edges = []
+            for face in solid.Faces:
+                for loop in face.GetEdgesAsCurveLoops():
+                    for curve in loop:
+                        edges.append(curve)
 
-        projected_curves = []
-        for e in edges:
-            start = e.GetEndPoint(0)
-            end = e.GetEndPoint(1)
+            projected_curves = []
+            for e in edges:
+                start = e.GetEndPoint(0)
+                end = e.GetEndPoint(1)
 
-            projected_start = project_point_to_plane(start, origin, normal)
-            projected_end = project_point_to_plane(end, origin, normal)
+                projected_start = project_point_to_plane(start, origin, normal)
+                projected_end = project_point_to_plane(end, origin, normal)
 
-            try:
-                projected_line = Line.CreateBound(projected_start,projected_end)
-                projected_curves.append(projected_line)
-            except:
-                continue
-        for curve in projected_curves:
-            try:
-                detail_line = doc.Create.NewDetailCurve(active_view,curve)
-                _id = detail_line.Id
-                ogs = OverrideGraphicSettings()
-                color = Color(red=255,green=0,blue=0)
-                ogs.SetProjectionLineColor(color)
-                doc.ActiveView.SetElementOverrides(_id,ogs)
-            except:
-                continue
-    t.Commit()
+                try:
+                    projected_line = Line.CreateBound(projected_start,projected_end)
+                    projected_curves.append(projected_line)
+                except:
+                    continue
+            for curve in projected_curves:
+                try:
+                    detail_line = doc.Create.NewDetailCurve(active_view,curve)
+                    _id = detail_line.Id
+                    ogs = OverrideGraphicSettings()
+                    color = Color(red=255,green=0,blue=0)
+                    ogs.SetProjectionLineColor(color)
+                    doc.ActiveView.SetElementOverrides(_id,ogs)
+                except:
+                    continue
+        t.Commit()
