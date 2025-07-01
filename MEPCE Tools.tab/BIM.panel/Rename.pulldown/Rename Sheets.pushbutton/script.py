@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __title__ = "Rename Sheets"
-__highlight__ = "updated"
+#__highlight__ = "updated"
 __doc__ = """Version = 1.1
 Date    = 2025.06.18
 _________________________________________________________________

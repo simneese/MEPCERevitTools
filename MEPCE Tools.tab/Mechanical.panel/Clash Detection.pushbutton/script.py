@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 __title__ = "Clash Detection"
-__highlight__ = "new"
-__doc__ = """Version = 1.0
-Date    = 2025.06.30
+__highlight__ = "updated"
+__doc__ = """Version = 1.1
+Date    = 2025.07.01
 _________________________________________________________________
 Description:
 This button will detect if selected element categories
 are clashing and will draw detail lines around clashing geometry.
+Orange - Clashing with duct
+Magenta - Clashing with pipe
+Red - Clashing with anything else
 _________________________________________________________________
 How-to:
 → Click button
@@ -17,13 +20,13 @@ How-to:
 → Select system types to filter, or select none
 _________________________________________________________________
 Last update:
+- [2025.07.01] - Added new colors for clash boxes!
+Bug fixes: Can now select multiple categories at once, will not check if an element clashes with itself.
 - [2025.06.30] - 1.0 RELEASE
 _________________________________________________________________
 To-Do:
 - Add more filter options
 - Add conduit category
-- Make sure clash detection is not checking the same element
-against itself
 _________________________________________________________________
 Author: Simeon Neese"""
 
@@ -110,6 +113,7 @@ def select_types_form(selected_categories=[]):
     stypes = []
     for selection in selected_categories:
         if selection == 'Pipes':
+            cat_types = []
             spipetypes = forms.SelectFromList.show(
                 l_pipingsnames,
                 multiselect=True,
@@ -118,8 +122,10 @@ def select_types_form(selected_categories=[]):
             )
             categoryobjs.append(BuiltInCategory.OST_PipeCurves)
             for typ in spipetypes:
-                stypes.append(typ)
+                cat_types.append(typ)
+            stypes.append(cat_types)
         if selection == 'Ducts':
+            cat_types = []
             sducttypes = forms.SelectFromList.show(
                 l_ductsnames,
                 multiselect=True,
@@ -128,7 +134,8 @@ def select_types_form(selected_categories=[]):
             )
             categoryobjs.append(BuiltInCategory.OST_DuctCurves)
             for typ in sducttypes:
-                stypes.append(typ)
+                cat_types.append(typ)
+            stypes.append(cat_types)
     return [stypes,categoryobjs]
 
 def project_point_to_plane(point, plane_origin, plane_normal):
@@ -137,45 +144,17 @@ def project_point_to_plane(point, plane_origin, plane_normal):
     distance = vec.DotProduct(plane_normal)
     return point - distance * plane_normal
 
-def project_curve_to_plane(_curve, plane_origin, plane_normal):
-    start = _curve.GetEndPoint(0)
-    end = _curve.GetEndPoint(1)
-    ps = project_point_to_plane(start, plane_origin, plane_normal)
-    pe = project_point_to_plane(end, plane_origin, plane_normal)
-    return Line.CreateBound(ps, pe)
+def get_category_color(category):
+    if type(category) is list:
+        alert('Entered list, expected category',title='get_category_color',exitscript=True)
 
-
-def build_closed_curveloop(curves, tolerance=1e-6):
-    loop = CurveLoop()
-    if not curves:
-        return loop
-
-    # Start with the first curve
-    current = curves.pop(0)
-    loop.Append(current)
-    current_end = current.GetEndPoint(1)
-
-    while curves:
-        found = False
-        for i, c in enumerate(curves):
-            start = c.GetEndPoint(0)
-            end = c.GetEndPoint(1)
-            if current_end.IsAlmostEqualTo(start, tolerance):
-                loop.Append(c)
-                current_end = end
-                curves.pop(i)
-                found = True
-                break
-            elif current_end.IsAlmostEqualTo(end, tolerance):
-                loop.Append(c.CreateReversed())
-                current_end = start
-                curves.pop(i)
-                found = True
-                break
-        if not found:
-            raise Exception("Cannot form a continuous loop with provided curves.")
-
-    return loop
+    if category.Name == 'Ducts':
+        color = Color(red=255,blue=0,green=153)
+    elif category.Name == 'Pipes':
+        color = Color(red=255,blue=102,green=0)
+    else:
+        color = Color(red=255,blue=0,green=9)
+    return color
 
 # ╔╦╗╔═╗╦╔╗╔
 # ║║║╠═╣║║║║
@@ -248,6 +227,11 @@ if not scategories:
 form1out = select_types_form(scategories)
 stypes = form1out[0]
 categoryobjs = form1out[1]
+selections1 = {}
+for i in range(len(categoryobjs)):
+    category = categoryobjs[i]
+    types = stypes[i]
+    selections1[category] = types
 
 #  _____
 # |____ |
@@ -283,6 +267,11 @@ structural_categories = [
 form2out = select_types_form(scategories2)
 stypes2 = form2out[0]
 categoryobjs2 = form2out[1]
+selections2 = {}
+for i in range(len(categoryobjs2)):
+    category = categoryobjs2[i]
+    types = stypes2[i]
+    selections2[category] = types
 
 #    ___
 #   /   |
@@ -302,7 +291,7 @@ else:
 elements = get_elements_of_categories(
     categories=categoryobjs,
     view=selected_view,
-    systemtypes=stypes,
+    systemtypes=selections1,
     readout=True
 )
 
@@ -312,7 +301,7 @@ if categoryobjs2:
     selels = get_elements_of_categories(
         categories=categoryobjs2,
         #view=selected_view,
-        systemtypes=stypes2,
+        systemtypes=selections2,
         readout=True
     )
     for el in selels:
@@ -366,10 +355,13 @@ element_ids2 = list(solids2.keys())
 # \_____/
 # Check for clashes and get clash geometry
 intersection_results = {}
-clash_geometry = []
+clash_geometry = {}
 for id1 in element_ids1:
     id1_intersections = []
+    id1_clashes = []
     for id2 in element_ids2:
+        if id1 == id2:
+            continue
         bb1 = bounding1[id1]
         bb2 = bounding2[id2]
         bbintersect = bounding_boxes_intersect(bb1,bb2)                      # First, check if bounding boxes intersect
@@ -387,12 +379,13 @@ for id1 in element_ids1:
                         result = BooleanOperationsUtils.ExecuteBooleanOperation(s1,s2,BooleanOperationsType.Intersect)
                         if result.Volume > 0:
                             id1_intersections.append(id2)
-                            clash_geometry.append(result)
+                            id1_clashes.append(result)
                             break
                     except:
                         continue
     if id1_intersections:
         intersection_results[id1] = id1_intersections
+        clash_geometry[id1] = id1_clashes
 results_keys = list(intersection_results.keys())
 
 print 'Elements Selected to Check: {}'.format(len(element_ids1))
@@ -413,36 +406,43 @@ normal = plane.Normal
 if sviewfilt == 'Yes':
     with Transaction(doc, "Create Detail Curve") as t:
         t.Start()
-        for solid in clash_geometry:
-            edges = []
-            for face in solid.Faces:
-                for loop in face.GetEdgesAsCurveLoops():
-                    for curve in loop:
-                        edges.append(curve)
+        for id1 in results_keys:
+            intersections = intersection_results[id1]
+            clashes = clash_geometry[id1]
+            for i in range(len(clashes)):
+                solid = clashes[i]
+                id2 = intersections[i]
+                element2 = doc.GetElement(id2)
+                category = element2.Category
+                edges = []
+                for face in solid.Faces:
+                    for loop in face.GetEdgesAsCurveLoops():
+                        for curve in loop:
+                            edges.append(curve)
 
-            projected_curves = []
-            for e in edges:
-                start = e.GetEndPoint(0)
-                end = e.GetEndPoint(1)
+                projected_curves = []
+                for e in edges:
+                    start = e.GetEndPoint(0)
+                    end = e.GetEndPoint(1)
 
-                projected_start = project_point_to_plane(start, origin, normal)
-                projected_end = project_point_to_plane(end, origin, normal)
+                    projected_start = project_point_to_plane(start, origin, normal)
+                    projected_end = project_point_to_plane(end, origin, normal)
 
-                try:
-                    projected_line = Line.CreateBound(projected_start,projected_end)
-                    projected_curves.append(projected_line)
-                except:
-                    continue
-            for curve in projected_curves:
-                try:
-                    detail_line = doc.Create.NewDetailCurve(active_view,curve)
-                    _id = detail_line.Id
-                    ogs = OverrideGraphicSettings()
-                    color = Color(red=255,green=0,blue=0)
-                    ogs.SetProjectionLineColor(color)
-                    doc.ActiveView.SetElementOverrides(_id,ogs)
-                except:
-                    continue
+                    try:
+                        projected_line = Line.CreateBound(projected_start,projected_end)
+                        projected_curves.append(projected_line)
+                    except:
+                        continue
+                for curve in projected_curves:
+                    try:
+                        detail_line = doc.Create.NewDetailCurve(active_view,curve)
+                        _id = detail_line.Id
+                        ogs = OverrideGraphicSettings()
+                        color = get_category_color(category)
+                        ogs.SetProjectionLineColor(color)
+                        doc.ActiveView.SetElementOverrides(_id,ogs)
+                    except:
+                        continue
         t.Commit()
 else:
     alert(

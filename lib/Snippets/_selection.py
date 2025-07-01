@@ -53,13 +53,13 @@ def get_selected_elements(filter_types=None):
 #                                                                                                              |___/
 # Get elements of input categories, optionally filtered by SystemType and Level!
 
-def get_elements_of_categories(categories=[],systemtypes=[],view=None,linked=False,readout=False):
+def get_elements_of_categories(categories=[],systemtypes={},view=None,linked=False,readout=False):
     """Get elements of input categories, optionally filtered by SystemType and View!
     Currently only for Ducts and Pipes.
     Use separately for elements from links vs from the model!
 
     - Input "categories" should be list of desired builtin categories, eg: BuiltInCategory.OST_DuctCurves
-    - Input "systemtypes" should be a list of type name strings, eg: 'Supply Air'. Leave empty to search all system types
+    - Input "systemtypes" should be a dictionary with keys which are selected categories and types which are associated system types, eg: {BuiltInCategory.OST_DuctCurves: 'Outside Air'}
     - Input "view" should be a view element. Leave empty to search all views
     - Input "linked" should be a boolean which will determine whether to look in linked docs. Default is False
     - Input "readout" should be a boolean which will determine if a readout is printed. Default is False
@@ -81,6 +81,13 @@ def get_elements_of_categories(categories=[],systemtypes=[],view=None,linked=Fal
         for category in categories:
             print category
         print "\n\n"
+        print "System Type Filters:\n"
+        for category in categories:
+            if systemtypes[category]:
+                print "{}: {}".format(category,systemtypes[category])
+            else:
+                print "No system filters applied to category {}".format(category)
+
 
     # Get linked docs
     link_instances = FilteredElementCollector(doc).OfClass(RevitLinkInstance).ToElements()
@@ -92,7 +99,7 @@ def get_elements_of_categories(categories=[],systemtypes=[],view=None,linked=Fal
     else:
         view_level_id = None
 
-    collector = []
+    collector = {}
     if not categories:                                                      # Check if any categories have been added
         alert("Categories list is empty!",title = "Selection",exitscript = True)
     else:
@@ -102,70 +109,83 @@ def get_elements_of_categories(categories=[],systemtypes=[],view=None,linked=Fal
                     if link:
                         if view:
                             for category in categories:
+                                cat_elements = []
                                 elements = FilteredElementCollector(link,view.Id).OfCategory(
                                     category).WhereElementIsNotElementType().ToElements()
                                 for el in elements:
                                     try:
                                         viewfilter = VisibleInViewFilter(link,view.Id)
                                         if viewfilter.PassesFilter(el):
-                                            collector.append(el)
+                                            cat_elements.append(el)
                                     except:
                                         continue
+                                collector[category] = cat_elements
                         else:
                             for category in categories:
+                                cat_elements = []
                                 elements = FilteredElementCollector(link).OfCategory(
                                 category).WhereElementIsNotElementType().ToElements()
                                 for el in elements:
-                                    collector.append(el)
+                                    cat_elements.append(el)
+                                collector[category] = cat_elements
                     else:
                         continue
             else:
                 if view:                                                        # Get all elements of categories in view
-                    elements = [FilteredElementCollector(doc,view.Id).OfCategory(
-                        category).WhereElementIsNotElementType().ToElements() for category in categories]
-                    for category in elements:
-                        for el in category:
+                    for category in categories:
+                        cat_elements = []
+                        elements = FilteredElementCollector(doc,view.Id).OfCategory(
+                            category).WhereElementIsNotElementType().ToElements()
+                        for el in elements:
                             try:
                                 viewfilter = VisibleInViewFilter(doc, view.Id)
                                 if viewfilter.PassesFilter(el):
-                                    collector.append(el)
+                                    cat_elements.append(el)
                             except:
                                 continue
+                        collector[category] = cat_elements
                 else:                                                           # Get all elements of categories
-                    elements = [FilteredElementCollector(doc).OfCategory(
-                        category).WhereElementIsNotElementType().ToElements() for category in categories]
-                    for category in elements:
-                        for el in category:
-                            collector.append(el)
+                    for category in categories:
+                        cat_elements = []
+                        elements = FilteredElementCollector(doc).OfCategory(
+                            category).WhereElementIsNotElementType().ToElements()
+                        for el in elements:
+                            cat_elements.append(el)
+                        collector[category] = cat_elements
         except Exception as e:
             alert(msg="Could not collect elements!", sub_msg="Error: {}".format(e),title="Selection", exitscript=True)
 
-    #allelements = [el for category in collector for el in category]         # Flatten list of elements
-    if view:
-        allelements = [el for el in collector if hasattr(el,'LevelId') and el.LevelId == view_level_id]
+    allelements = {}
+    if view:                                                                # Check if elements are on correct level
+        for category in categories:
+            elements = collector[category]
+            allelements[category] = [el for el in elements if hasattr(el,'LevelId') and el.LevelId == view_level_id]
     else:
-        allelements = collector
+        for category in categories:
+            elements = collector[category]
+            allelements[category] = elements
 
-    typfilter = []
-    if systemtypes:                                                         # Check if system types have been added
-        if readout is True:
-            print "Filtered SystemTypes:"
-            for type in systemtypes:
-                print type
-        for el in allelements:                                              # Filter by system type
-            try:
-                mep = el.MEPSystem.LookupParameter("Type").AsValueString()
-                if mep in systemtypes:
-                    typfilter.append(el)
-                else:
+    filtered_elements = []
+    for category in categories:
+        types = systemtypes[category]
+        typfilter = []
+        if types:                                                         # Check if system types have been added
+            elements = allelements[category]
+            for el in elements:                                              # Filter by system type
+                try:
+                    mep = el.MEPSystem.LookupParameter("Type").AsValueString()
+                    if mep in types:
+                        typfilter.append(el)
+                    else:
+                        continue
+                except:
                     continue
-            except:
-                continue
-        filtered_elements = typfilter
-    else:
-        if readout is True:
-            print 'No system filters added!'
-        filtered_elements = allelements
+            for el in typfilter:
+                filtered_elements.append(el)
+        else:
+            for el in allelements[category]:
+                filtered_elements.append(el)
+
     if readout is True:
         print "\n# Filtered Elements: {}".format(len(filtered_elements))+"\n"+"~"*100
 
