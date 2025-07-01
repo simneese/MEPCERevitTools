@@ -53,7 +53,7 @@ def get_selected_elements(filter_types=None):
 #                                                                                                              |___/
 # Get elements of input categories, optionally filtered by SystemType and Level!
 
-def get_elements_of_categories(categories=[],systemtypes={},view=None,linked=False,readout=False):
+def get_elements_of_categories(categories=[],systemtypes=None,view=None,linked=False,readout=False):
     """Get elements of input categories, optionally filtered by SystemType and View!
     Currently only for Ducts and Pipes.
     Use separately for elements from links vs from the model!
@@ -66,6 +66,11 @@ def get_elements_of_categories(categories=[],systemtypes={},view=None,linked=Fal
 
     eg:
     graded_pipes = get_elements_of_categories([BuiltInCategory.OST_PipeCurves],['PW-Grease Waste Pipe','PW-Waste Pipe','PW-Roof Drain'],view)"""
+    if systemtypes is None:                                                 # Check if there is an input systemtypes filter
+        systemtypes = {}
+        for category in categories:
+            systemtypes[category] = []
+
     if readout is True:
         print "~"*100+"\n-ELEMENT FILTERS-"
         print "\n\n"

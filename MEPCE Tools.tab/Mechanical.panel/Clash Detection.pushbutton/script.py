@@ -255,15 +255,15 @@ if not scategories2:
           sub_msg='At least one category should be selected to check against. Exiting script.',exitscript=True)
 
 # Ask user to select system types from each of the selected categories
-structural_categories = [
-    BuiltInCategory.OST_StructuralFraming,
-    BuiltInCategory.OST_StructuralColumns,
-    BuiltInCategory.OST_StructuralFoundation,
-    BuiltInCategory.OST_StructuralTruss,
-    BuiltInCategory.OST_StructuralStiffener,
-    BuiltInCategory.OST_StructuralTendons,
-    BuiltInCategory.OST_Columns
-]
+structural_categories = {
+    BuiltInCategory.OST_StructuralFraming: [],
+    BuiltInCategory.OST_StructuralColumns: [],
+    BuiltInCategory.OST_StructuralFoundation: [],
+    BuiltInCategory.OST_StructuralTruss: [],
+    BuiltInCategory.OST_StructuralStiffener: [],
+    BuiltInCategory.OST_StructuralTendons: [],
+    BuiltInCategory.OST_Columns: []
+}
 form2out = select_types_form(scategories2)
 stypes2 = form2out[0]
 categoryobjs2 = form2out[1]
@@ -327,6 +327,7 @@ if 'Structural' in scategories2:
 # Get geometry for elements
 solids1 = {}
 bounding1 = {}
+ids_elements1 = {}
 for el in elements:
     solids = get_solid_geometry(el)
     flat_solids = [s for s in solids if isinstance(s, Solid) and s.Volume > 0]
@@ -334,10 +335,12 @@ for el in elements:
     if flat_solids:
         solids1[el.Id] = flat_solids
         bounding1[el.Id] = bounding
+        ids_elements1[el.Id] = el
 element_ids1 = list(solids1.keys())
 
 solids2 = {}
 bounding2 = {}
+ids_elements2 = {}
 for el in elements2:
     solids = get_solid_geometry(el)
     flat_solids = [s for s in solids if isinstance(s, Solid) and s.Volume > 0]
@@ -345,6 +348,7 @@ for el in elements2:
     if flat_solids:
         solids2[el.Id] = flat_solids
         bounding2[el.Id] = bounding
+        ids_elements2[el.Id] = el
 element_ids2 = list(solids2.keys())
 
 #   ____
@@ -412,7 +416,7 @@ if sviewfilt == 'Yes':
             for i in range(len(clashes)):
                 solid = clashes[i]
                 id2 = intersections[i]
-                element2 = doc.GetElement(id2)
+                element2 = ids_elements2[id2]
                 category = element2.Category
                 edges = []
                 for face in solid.Faces:
