@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __title__ = "Clash Detection"
-__highlight__ = "updated"
+#__highlight__ = "updated"
 __doc__ = """Version = 1.1
 Date    = 2025.07.01
 _________________________________________________________________
