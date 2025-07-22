@@ -121,8 +121,10 @@ def select_types_form(selected_categories=[]):
                 button_name='Select'
             )
             categoryobjs.append(BuiltInCategory.OST_PipeCurves)
+            categoryobjs.append(BuiltInCategory.OST_PipeFitting)
             for typ in spipetypes:
                 cat_types.append(typ)
+            stypes.append(cat_types)
             stypes.append(cat_types)
         if selection == 'Ducts':
             cat_types = []
@@ -133,8 +135,16 @@ def select_types_form(selected_categories=[]):
                 button_name='Select'
             )
             categoryobjs.append(BuiltInCategory.OST_DuctCurves)
+            categoryobjs.append(BuiltInCategory.OST_DuctFitting)
             for typ in sducttypes:
                 cat_types.append(typ)
+            stypes.append(cat_types)
+            stypes.append(cat_types)
+        if selection == 'Conduit':
+            cat_types = []
+            categoryobjs.append(BuiltInCategory.OST_Conduit)
+            categoryobjs.append(BuiltInCategory.OST_ConduitFitting)
+            stypes.append(cat_types)
             stypes.append(cat_types)
     return [stypes,categoryobjs]
 
@@ -147,11 +157,12 @@ def project_point_to_plane(point, plane_origin, plane_normal):
 def get_category_color(category):
     if type(category) is list:
         alert('Entered list, expected category',title='get_category_color',exitscript=True)
-
     if category.Name == 'Ducts':
         color = Color(red=255,blue=0,green=153)
     elif category.Name == 'Pipes':
         color = Color(red=255,blue=102,green=0)
+    elif category.Name == 'Conduits':
+        color = Color(red=255,blue=0,green=255)
     else:
         color = Color(red=255,blue=0,green=9)
     return color
@@ -170,6 +181,14 @@ def get_category_color(category):
 # Get piping and duct system types
 pipingsystemtypes = list(FilteredElementCollector(doc).OfClass(PipingSystemType).ToElements())
 ductsystemtypes = list(FilteredElementCollector(doc).OfClass(MechanicalSystemType).ToElements())
+
+# Create dictionary of categories
+allelementcategories = {
+    'Ducts': [BuiltInCategory.OST_DuctCurves, BuiltInCategory.OST_DuctFitting],
+    'Pipes': [BuiltInCategory.OST_PipeCurves, BuiltInCategory.OST_PipeFitting],
+    'Conduit': [BuiltInCategory.OST_Conduit, BuiltInCategory.OST_ConduitFitting],
+    'Structural': []
+}
 
 # Create a dictionary for piping system types
 d_pipingstypes = {}
@@ -210,11 +229,11 @@ for dct in ductsystemtypes:
 sviewfilt = forms.alert(msg="Filter elements by Active View?",options=["Yes","No"],warn_icon=False)
 
 # Ask user to select a category to check
-availcategories = ['Ducts','Pipes']
+availcategories = ['Ducts','Pipes','Conduit']
 scategories = forms.SelectFromList.show(
     availcategories,
     multiselect=True,
-    title='Select First Categories',
+    title='Select Main Categories to Check (must be visible in view)',
     button_name='Select'
 )
 
@@ -241,11 +260,11 @@ for i in range(len(categoryobjs)):
 # \____/
 # Get User Inputs II: The Movie
 # Ask user to select a category to check aginst
-availcategories2 = ['Structural','Ducts','Pipes']
+availcategories2 = ['Structural','Ducts','Pipes','Conduit']
 scategories2 = forms.SelectFromList.show(
     availcategories2,
     multiselect=True,
-    title='Select Categories to Check Against',
+    title='Select Categories to Check Against (do not need to be visible in view)',
     button_name='Select'
 )
 
