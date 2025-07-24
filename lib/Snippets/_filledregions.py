@@ -27,6 +27,7 @@ app   = __revit__.Application               #type: Application
 #                                                                 __/ |
 #                                                                |___/
 # This function will get a list of all filled regions, which can optionally be filtered by view discipline
+
 def get_filled_regions(allviews, filter_discipline=""):
     # Filter views by input filter
     filtviews = []
@@ -164,3 +165,56 @@ def get_room_data(rooms):
     paramsnames.append('Supply / Area (CFM/ft^2)')
     paramsnames.insert(0,'Room Name and Number')
     return [roomdata,paramsnames] # Returns list of dictionaries and list of dictionary keys
+
+#  _____                     _          ______  _  _  _            _  ______               _
+# /  __ \                   | |         |  ___|(_)| || |          | | | ___ \             (_)
+# | /  \/ _ __   ___   __ _ | |_   ___  | |_    _ | || |  ___   __| | | |_/ /  ___   __ _  _   ___   _ __
+# | |    | '__| / _ \ / _` || __| / _ \ |  _|  | || || | / _ \ / _` | |    /  / _ \ / _` || | / _ \ | '_ \
+# | \__/\| |   |  __/| (_| || |_ |  __/ | |    | || || ||  __/| (_| | | |\ \ |  __/| (_| || || (_) || | | |
+#  \____/|_|    \___| \__,_| \__| \___| \_|    |_||_||_| \___| \__,_| \_| \_| \___| \__, ||_| \___/ |_| |_|
+#                                                                                    __/ |
+#                                                                                   |___/
+# Create filled region from room
+
+def create_filled_region_from_room(room, view, region_type):
+    """
+    Creates a filled region in `view` using the room's boundaries.
+    Projects boundaries to view's level plane.
+    Skips invalid or zero-area loops.
+    """
+    options = SpatialElementBoundaryOptions()
+    boundary_loops = room.GetBoundarySegments(options)
+    if not boundary_loops:
+        return False
+
+    level_elev = view.GenLevel.Elevation
+    boundaries = []
+
+    filledregion = {}
+    for loop_idx, segment_list in enumerate(boundary_loops):
+        curves = CurveLoop()
+        prev_end = None
+        for seg in segment_list:
+            c = seg.GetCurve()
+            start = c.GetEndPoint(0)
+            end = c.GetEndPoint(1)
+
+            # flatten to level elevation
+            flat_start = XYZ(start.X, start.Y, level_elev)
+            flat_end = XYZ(end.X, end.Y, level_elev)
+
+            # reconstruct line
+            line = Line.CreateBound(flat_start, flat_end)
+            curves.Append(line)
+
+            prev_end = flat_end
+
+        # optionally skip degenerate loops
+
+        boundaries.append(curves)
+        filledregion[loop_idx] = FilledRegion.Create(doc, region_type.Id, view.Id, [curves])
+
+
+    if not boundaries:
+        return False
+    return filledregion

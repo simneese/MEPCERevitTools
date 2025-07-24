@@ -197,3 +197,20 @@ def get_elements_of_categories(categories=[],systemtypes=None,view=None,linked=F
     if not filtered_elements:
         alert("No elements passed the filter!",title="Selection",exitscript=True)
     return filtered_elements
+
+#  _____        _     _      _         _               _  ______
+# |  __ \      | |   | |    (_)       | |             | | |  _  \
+# | |  \/  ___ | |_  | |     _  _ __  | | __  ___   __| | | | | |  ___    ___  ___
+# | | __  / _ \| __| | |    | || '_ \ | |/ / / _ \ / _` | | | | | / _ \  / __|/ __|
+# | |_\ \|  __/| |_  | |____| || | | ||   < |  __/| (_| | | |/ / | (_) || (__ \__ \
+#  \____/ \___| \__| \_____/|_||_| |_||_|\_\ \___| \__,_| |___/   \___/  \___||___/
+
+def get_linked_docs(current_doc):
+    """Returns a list of linked docs"""
+    linked_docs = []
+    collector = FilteredElementCollector(current_doc).OfClass(RevitLinkInstance)
+    for link_inst in collector:
+        link_doc = link_inst.GetLinkDocument()
+        if link_doc:  # only if loaded
+            linked_docs.append(link_doc)
+    return linked_docs

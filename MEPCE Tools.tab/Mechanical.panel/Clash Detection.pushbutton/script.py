@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 __title__ = "Clash Detection"
-#__highlight__ = "updated"
-__doc__ = """Version = 1.1
-Date    = 2025.07.01
+__highlight__ = "updated"
+__doc__ = """Version = 1.2
+Date    = 2025.07.22
 _________________________________________________________________
 Description:
 This button will detect if selected element categories
@@ -20,13 +20,14 @@ How-to:
 → Select system types to filter, or select none
 _________________________________________________________________
 Last update:
+- [2025.07.22] - Added Conduit Category
 - [2025.07.01] - Added new colors for clash boxes!
 Bug fixes: Can now select multiple categories at once, will not check if an element clashes with itself.
 - [2025.06.30] - 1.0 RELEASE
 _________________________________________________________________
 To-Do:
 - Add more filter options
-- Add conduit category
+- Add mechanical equipment category
 _________________________________________________________________
 Author: Simeon Neese"""
 
