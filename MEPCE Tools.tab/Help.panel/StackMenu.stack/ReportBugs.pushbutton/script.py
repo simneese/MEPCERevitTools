@@ -68,10 +68,10 @@ class ReportBugWindow(Window):
         panel.Children.Add(self.textbox_error)
 
         # Email Instructions
-        email_instr = TextBlock()
+        """email_instr = TextBlock()
         email_instr.Text = "After submitting, please email this report to: sneese@mepce.com"
         email_instr.Margin = Thickness(0, 0, 0, 10)
-        panel.Children.Add(email_instr)
+        panel.Children.Add(email_instr)"""
 
         # Submit Button
         btn_send = Button()
@@ -105,7 +105,10 @@ class ReportBugWindow(Window):
 
         timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")
         filename = "BugReport_{}.txt".format(timestamp)
-        folder = os.path.expanduser("~\\Desktop")
+        if os.path.exists('R:\\04-Users\\Simeon Neese\\Script Management\\Bug Reports'):
+            folder = "R:\\04-Users\\Simeon Neese\\Script Management\\Bug Reports"
+        else:
+            folder = os.path.expanduser("~\\Desktop")
 
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -115,12 +118,20 @@ class ReportBugWindow(Window):
         content = u"BUG TITLE:\n{}\n\nTIMESTAMP:\n{}\n\nDESCRIPTION:\n{}\n\nERROR MESSAGE:\n{}".format(title, timestamp, desc, error)
         File.WriteAllText(full_path, content)
 
-        MessageBox.Show(
-            "Bug report saved to:\n{}\n\nPlease email the file to: sneese@mepce.com".format(full_path),
-            "Report Saved",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information
-        )
+        if os.path.exists('R:\\04-Users\\Simeon Neese\\Script Management\\Bug Reports'):
+            MessageBox.Show(
+                "Bug report saved.".format(full_path),
+                "Report Saved",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            )
+        else:
+            MessageBox.Show(
+                "Bug report saved to:\n{}\n\nPlease email the file to: sneese@mepce.com".format(full_path),
+                "Report Saved",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            )
 
         self.Close()
 
