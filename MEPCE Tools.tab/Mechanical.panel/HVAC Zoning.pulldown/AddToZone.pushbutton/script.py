@@ -126,8 +126,8 @@ while True:
     zone = prefix + str(nextzone)
 
     # Check to continue
-    check = alert("Add Filled Regions to Zone {}?".format(zone),warn_icon=False,ok=False,yes=True,no=True)
-    if check is False:
+    check = alert("Create new zone {}?".format(zone),sub_msg="If yes, select regions to add to zone.",warn_icon=False,options=['Yes','No'])
+    if check == 'No':
         break
 
     t.Start()
@@ -146,8 +146,9 @@ while True:
     # .___/ /
     # \____/
     # Update zone colors
+    # Get all existing zones organized by zone name
     allexistingprefixes = []
-    zonedregions = []
+    allexistingzones = {}
     for region in filledregions:
         regionzone = region.LookupParameter("MEPCE HVAC Zone").AsString()
         if regionzone:
@@ -157,7 +158,11 @@ while True:
             for part in zoneparts:
                 deriveprefix = deriveprefix + part + "-"
             allexistingprefixes.append(deriveprefix)
-            zonedregions.append(region)
+            try:
+                lookup = allexistingzones[regionzone]
+            except:
+                allexistingzones[regionzone] = []
+            allexistingzones[regionzone].append(region)
 
     # Get unique prefixes
     alluniqueprefixes = list(set(allexistingprefixes))
@@ -175,25 +180,33 @@ while True:
     # Assign colors per zone group
     for z_idx,zoneprefix in enumerate(alluniqueprefixes):
         color = color_picker(z_idx)
-        zonecount = allexistingprefixes.count(zoneprefix)
+        keyswithpre = []
+        for key in allexistingzones.keys():
+            split = key.split("-")
+            del split[-1]
+            keyprefix = ""
+            for part in split:
+                keyprefix = keyprefix + part + "-"
+            if keyprefix == zoneprefix:
+                keyswithpre.append(key)
+
+        zonecount = len(keyswithpre)
         gradient = create_color_grad(color,zonecount)
-        colorregions = []
 
-        for r_idx,regionprefix in enumerate(allexistingprefixes):
-            if regionprefix == zoneprefix:
-                colorregions.append(zonedregions[r_idx])
-        if len(gradient) != len(colorregions):
-            alert("Error creating color gradients for zone group {}!".format(zoneprefix))
-            continue
+        for keystocolor in keyswithpre:
+            if len(gradient) != len(keyswithpre):
+                alert("Error creating color gradients for zone group {}!".format(zoneprefix))
+                continue
 
-        for c_idx,region in enumerate(colorregions):
-            ogs = OverrideGraphicSettings()
-            icolor = gradient[c_idx]
-            ogs.SetProjectionLineColor(Color(0,0,0))
-            ogs.SetSurfaceForegroundPatternColor(icolor)
-            ogs.SetSurfaceForegroundPatternId(solid_fill.Id)
-            ogs.SetSurfaceBackgroundPatternId(DB.ElementId.InvalidElementId)
-            active_view.SetElementOverrides(region.Id,ogs)
+            for c_idx,zone in enumerate(keyswithpre):
+                for region in allexistingzones[zone]:
+                    ogs = OverrideGraphicSettings()
+                    icolor = gradient[c_idx]
+                    ogs.SetProjectionLineColor(Color(0,0,0))
+                    ogs.SetSurfaceForegroundPatternColor(icolor)
+                    ogs.SetSurfaceForegroundPatternId(solid_fill.Id)
+                    ogs.SetSurfaceBackgroundPatternId(DB.ElementId.InvalidElementId)
+                    active_view.SetElementOverrides(region.Id,ogs)
 
 
     t.Commit()
