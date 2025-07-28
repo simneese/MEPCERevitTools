@@ -1,0 +1,196 @@
+# -*- coding: utf-8 -*-
+__title__   = "Add Regions To Zones"
+__highlight__ = "new"
+__doc__     = """Version = 1.0
+Date    = 2025.07.28
+_________________________________________________________________
+Description:
+Adds selected filled regions to a zone
+_________________________________________________________________
+How-to:
+-> Click button
+-> Enter zone prefix
+-> Select regions to add to a zone
+-> Continue until finished adding regions to zones
+-> Done!
+_________________________________________________________________
+Last update:
+- [2025.07.28] - 1.0 RELEASE
+_________________________________________________________________
+To-Do
+- Update colors to use solid colors rather than just colored lines
+_________________________________________________________________
+Author: Simeon Neese"""
+
+# ╦╔╦╗╔═╗╔═╗╦═╗╔╦╗╔═╗
+# ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
+# ╩╩ ╩╩  ╚═╝╩╚═ ╩ ╚═╝
+#==================================================
+# pyrevit
+from pyrevit import revit, DB, forms, script
+
+# revit
+from Autodesk.Revit.DB import *
+from types import NoneType
+
+# .NET Imports (You often need List import)
+import clr
+from pyrevit.forms import alert
+
+clr.AddReference("System")
+from System.Collections.Generic import List
+
+# ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
+# ╚╗╔╝╠═╣╠╦╝║╠═╣╠╩╗║  ║╣ ╚═╗
+#  ╚╝ ╩ ╩╩╚═╩╩ ╩╚═╝╩═╝╚═╝╚═╝
+#==================================================
+from Autodesk.Revit.UI import UIDocument
+app    = __revit__.Application                  #type: Application
+uidoc  = __revit__.ActiveUIDocument             #type: UIDocument
+doc    = __revit__.ActiveUIDocument.Document    #type: Document
+
+# ╔═╗╦ ╦╔╗╔╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
+# ╠╣ ║ ║║║║║   ║ ║║ ║║║║╚═╗
+# ╚  ╚═╝╝╚╝╚═╝ ╩ ╩╚═╝╝╚╝╚═╝
+#==================================================
+from Snippets._selection import select_multiple
+from Snippets._math import get_lowest_available, create_color_grad
+
+def color_picker(index):
+    colorsets = [
+        [Color(104,14,14),Color(255,0,0)],      # Reds
+        [Color(20,20,77),Color(0,255,0)],       # Blues
+        [Color(69,43,12),Color(252,140,3)],     # Oranges
+        [Color(34,69,23),Color(65,252,3)],      # Greens
+        [Color(74,10,69),Color(242,5,222)],     # Purples
+        [Color(22,79,77),Color(0,252,242)]      # Cyans
+    ]
+
+    return colorsets[index]
+# ╔╦╗╔═╗╦╔╗╔
+# ║║║╠═╣║║║║
+# ╩ ╩╩ ╩╩╝╚╝
+#==================================================
+
+#  __
+# /  |
+# `| |
+#  | |
+# _| |_
+# \___/
+# Ask for naming scheme
+alert(msg='Input prefix for zone naming scheme',sub_msg='i.e.\nVAV-1-2- will result in zones named VAV-1-2-1, VAV-1-2-2, etc.',warn_icon=False)
+from rpw.ui.forms import (FlexForm, Label, TextBox, Separator, Button)
+
+components =    [Label('Prefix:'), TextBox('prefix'), Separator(), Button('Apply')]
+
+form = FlexForm('Zone Naming', components)
+form.show()
+
+user_inputs = form.values
+prefix      = user_inputs['prefix']
+
+if prefix == "":
+    alert("Prefix cannot be empty!",exitscript=True)
+
+#  _____
+# / __  \
+# `' / /'
+#   / /
+# ./ /___
+# \_____/
+# Select Filled Regions and Apply Zone Names
+active_view = doc.ActiveView
+
+zonenum = 1
+createdzones = []
+
+t = Transaction(doc,"Add Regions to Zone")
+
+while True:
+    # Get pre-existing zone numbers with same prefix
+    filledregions = FilteredElementCollector(doc, active_view.Id).OfCategory(
+        BuiltInCategory.OST_DetailComponents).OfClass(FilledRegion).ToElements()
+
+    existingzonenums = []
+    for region in filledregions:
+        regionzone = region.LookupParameter("MEPCE HVAC Zone").AsString()
+        if regionzone and prefix in regionzone:
+            zoneparts = regionzone.split('-')
+            zonenum = int(zoneparts[-1])
+            existingzonenums.append(zonenum)
+
+    # Get next available zone number
+    if existingzonenums:
+        nextzone = get_lowest_available(existingzonenums)
+    else:
+        nextzone = 1
+
+    zone = prefix + str(nextzone)
+
+    # Check to continue
+    check = alert("Add Filled Regions to Zone {}?".format(zone),warn_icon=False,ok=False,yes=True,no=True)
+    if check is False:
+        break
+
+    t.Start()
+
+    # Update HVAC Zone parameter value
+    regions = select_multiple([BuiltInCategory.OST_DetailComponents],"Select Filled Regions")
+    if not regions:
+        t.Commit()
+        break
+    ZONEPARAMS = [region.LookupParameter("MEPCE HVAC Zone").Set(zone) for region in regions]
+
+    #  _____
+    # |____ |
+    #     / /
+    #     \ \
+    # .___/ /
+    # \____/
+    # Update zone colors
+    allexistingprefixes = []
+    zonedregions = []
+    for region in filledregions:
+        regionzone = region.LookupParameter("MEPCE HVAC Zone").AsString()
+        if regionzone:
+            zoneparts = regionzone.split('-')
+            del zoneparts[-1]
+            deriveprefix = ""
+            for part in zoneparts:
+                deriveprefix = deriveprefix + part + "-"
+            allexistingprefixes.append(deriveprefix)
+            zonedregions.append(region)
+
+    # Get unique prefixes
+    alluniqueprefixes = list(set(allexistingprefixes))
+    alluniqueprefixes.sort()
+
+    for z_idx,zoneprefix in enumerate(alluniqueprefixes):
+        color = color_picker(z_idx)
+        zonecount = allexistingprefixes.count(zoneprefix)
+        gradient = create_color_grad(color,zonecount)
+        colorregions = []
+
+        for r_idx,regionprefix in enumerate(allexistingprefixes):
+            if regionprefix == zoneprefix:
+                colorregions.append(zonedregions[r_idx])
+        if len(gradient) != len(colorregions):
+            alert("Error creating color gradients for zone group {}!".format(zoneprefix))
+            continue
+
+        for c_idx,region in enumerate(colorregions):
+            ogs = OverrideGraphicSettings()
+            icolor = gradient[c_idx]
+            print icolor
+            ogs.SetProjectionLineColor(icolor)
+            ogs.SetSurfaceForegroundPatternColor(icolor)
+            ogs.SetSurfaceForegroundPatternId(DB.ElementId.InvalidElementId)
+            active_view.SetElementOverrides(region.Id,ogs)
+
+
+    t.Commit()
+
+    createdzones.append(zone)
+
+alert("Finished!",sub_msg="Created New Zones:\n{}".format(createdzones),warn_icon=False)

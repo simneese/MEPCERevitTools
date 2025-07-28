@@ -2,7 +2,7 @@
 __title__   = "Create Filled Regions"
 __highlight__ = "new"
 __doc__     = """Version = 1.0
-Date    = 2025.07.24
+Date    = 2025.07.28
 _________________________________________________________________
 Description:
 Create filled regions for each room.
@@ -13,7 +13,7 @@ How-to:
 -> Done! Move on to zoning script
 _________________________________________________________________
 Last update:
-- [2025.07.24] - 1.0 RELEASE
+- [2025.07.28] - 1.0 RELEASE
 _________________________________________________________________
 Author: Simeon Neese"""
 
@@ -51,13 +51,6 @@ doc    = __revit__.ActiveUIDocument.Document    #type: Document
 from Snippets._selection import get_elements_of_categories
 from Snippets._filledregions import create_filled_region_from_room
 from Snippets._parameters import import_all_shared_parameters
-
-def project_to_level(curve, elev):
-    start = curve.GetEndPoint(0)
-    end = curve.GetEndPoint(1)
-    start = XYZ(start.X, start.Y, elev)
-    end = XYZ(end.X, end.Y, elev)
-    return Line.CreateBound(start, end)
 
 # ╔╦╗╔═╗╦╔╗╔
 # ║║║╠═╣║║║║

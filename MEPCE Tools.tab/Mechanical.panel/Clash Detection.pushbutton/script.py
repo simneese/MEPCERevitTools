@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 __title__ = "Clash Detection"
 __highlight__ = "updated"
-__doc__ = """Version = 1.2
-Date    = 2025.07.22
+__doc__ = """Version = 1.3
+Date    = 2025.07.28
 _________________________________________________________________
 Description:
 This button will detect if selected element categories
@@ -20,6 +20,7 @@ How-to:
 → Select system types to filter, or select none
 _________________________________________________________________
 Last update:
+- [2025.07.28] - Added pipe diameter filter, fixed bug when selecting multiple categories to check
 - [2025.07.22] - Added Conduit Category
 - [2025.07.01] - Added new colors for clash boxes!
 Bug fixes: Can now select multiple categories at once, will not check if an element clashes with itself.
@@ -31,6 +32,7 @@ To-Do:
 _________________________________________________________________
 Author: Simeon Neese"""
 
+from symbol import break_stmt, return_stmt
 
 # ╦╔╦╗╔═╗╔═╗╦═╗╔╦╗╔═╗
 # ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
@@ -52,6 +54,9 @@ from pyrevit.forms import alert
 clr.AddReference("System")
 from System.Collections.Generic import List
 
+from rpw.ui.forms import (FlexForm, Label, TextBox, Separator, Button)
+
+
 # ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
 # ╚╗╔╝╠═╣╠╦╝║╠═╣╠╩╗║  ║╣ ╚═╗
 #  ╚╝ ╩ ╩╩╚═╩╩ ╩╚═╝╩═╝╚═╝╚═╝ VARIABLES
@@ -66,47 +71,7 @@ app   = __revit__.Application               #type: Application
 # ╚  ╚═╝╝╚╝╚═╝ ╩ ╩╚═╝╝╚╝╚═╝
 #==================================================
 from Snippets._selection import get_elements_of_categories
-
-def get_solid_geometry(element,transform=None):
-    """Get solid geometry from an input element"""
-    opt = Options()
-    opt.ComputeReferences = True
-    opt.IncludeNonVisibleObjects = False
-    geo_elem = element.get_Geometry(opt)
-
-    solids = []
-
-    for geo_obj in geo_elem:
-        if isinstance(geo_obj, Solid) and geo_obj.Volume > 0:
-            solids.append(geo_obj)
-        elif isinstance(geo_obj, GeometryInstance):
-            inst_geo = geo_obj.GetInstanceGeometry()
-            for inst_obj in inst_geo:
-                if isinstance(inst_obj, Solid) and inst_obj.Volume > 0:
-                    solids.append(inst_obj)
-
-    if transform:
-        solids = [SolidUtils.CreateTransformed(s, transform) for s in solids if s]
-
-    return solids
-
-def bounding_boxes_intersect(bb1, bb2):
-    """Check if two bounding boxes intersect"""
-    if not bb1 or not bb2:
-        return False
-    return (bb1.Max.X >= bb2.Min.X and bb1.Min.X <= bb2.Max.X and
-            bb1.Max.Y >= bb2.Min.Y and bb1.Min.Y <= bb2.Max.Y and
-            bb1.Max.Z >= bb2.Min.Z and bb1.Min.Z <= bb2.Max.Z)
-
-def flatten_solids(items):
-    """Flatten a list of solids to only contain solid objects, and no nested lists."""
-    flat = []
-    if isinstance(items, Solid):
-        flat.append(items)
-    elif isinstance(items, list) or isinstance(items, tuple):
-        for i in items:
-            flat.extend(flatten_solids(i))  # recursion
-    return flat
+from Snippets._geometry import get_solid_geometry, bounding_boxes_intersect, flatten_solids, project_point_to_plane
 
 def select_types_form(selected_categories=[]):
     """Open form to select duct and pipe system types."""
@@ -118,7 +83,7 @@ def select_types_form(selected_categories=[]):
             spipetypes = forms.SelectFromList.show(
                 l_pipingsnames,
                 multiselect=True,
-                title='Filter Pipe System Types?',
+                title='Select System Filters to Apply',
                 button_name='Select'
             )
             categoryobjs.append(BuiltInCategory.OST_PipeCurves)
@@ -132,7 +97,7 @@ def select_types_form(selected_categories=[]):
             sducttypes = forms.SelectFromList.show(
                 l_ductsnames,
                 multiselect=True,
-                title='Filter Duct System Types?',
+                title='Select System Filters to Apply',
                 button_name='Select'
             )
             categoryobjs.append(BuiltInCategory.OST_DuctCurves)
@@ -149,24 +114,60 @@ def select_types_form(selected_categories=[]):
             stypes.append(cat_types)
     return [stypes,categoryobjs]
 
-def project_point_to_plane(point, plane_origin, plane_normal):
-    # vector from origin to point
-    vec = point - plane_origin
-    distance = vec.DotProduct(plane_normal)
-    return point - distance * plane_normal
-
 def get_category_color(category):
     if type(category) is list:
         alert('Entered list, expected category',title='get_category_color',exitscript=True)
-    if category.Name == 'Ducts':
+    if category.Name == 'Ducts' or category.Name == 'Duct Fittings':
         color = Color(red=255,blue=0,green=153)
-    elif category.Name == 'Pipes':
-        color = Color(red=255,blue=102,green=0)
-    elif category.Name == 'Conduits':
+    elif category.Name == 'Pipes' or category.Name == 'Pipe Fittings':
+        color = Color(red=255,blue=134,green=13)
+    elif category.Name == 'Conduits' or category.Name == 'Conduit Fittings':
         color = Color(red=255,blue=0,green=255)
     else:
         color = Color(red=255,blue=0,green=9)
     return color
+
+def filter_pipe_size(pipes,catobj,mindiam):
+    """
+    Filter a list of pipes or pipe fittings based on minimum diameter.
+    Inputs:
+    1 - pipes : a list of pipe elements
+    2 - catobj : the built in category for the list of elements (all should be the same category)
+    3 - mindiam : an integer or float for the minimum diameter
+    """
+    filtpipes = []
+    for pipe in pipes:
+        if catobj == BuiltInCategory.OST_PipeCurves:
+            if pipe.Diameter * 12 >= mindiam:
+                filtpipes.append(pipe)
+        elif catobj == BuiltInCategory.OST_PipeFitting:
+            connectors = pipe.MEPModel.ConnectorManager.Connectors
+            conndiam = 0
+            for conn in connectors:
+                if conn.ConnectorType == ConnectorType.End:
+                    conndiam = conn.Radius * 24
+            if conndiam >= mindiam:
+                filtpipes.append(pipe)
+    return filtpipes
+
+def req_pipe_size():
+    """Request a minimum pipe diameter"""
+    pipfiltsel = forms.alert("Would you like to filter by pipe size?",warn_icon=False,options=["Yes","No"])
+    try:
+        if pipfiltsel == "Yes":
+            components = [Label('Min Pipe Diam (inches):'), TextBox('diam'), Separator(), Button('Apply')]
+
+            form = FlexForm('Pipe Diameter Filter', components)
+            form.show()
+
+            user_inputs = form.values
+            mindiam = float(user_inputs['diam'])
+        else:
+            mindiam = 0
+    except:
+        alert("Did not enter a diameter!",sub_msg='Using default min diam of 0"',warn_icon=False)
+    return mindiam
+
 
 # ╔╦╗╔═╗╦╔╗╔
 # ║║║╠═╣║║║║
@@ -253,6 +254,14 @@ for i in range(len(categoryobjs)):
     types = stypes[i]
     selections1[category] = types
 
+# Ask for min diam
+mindiam1 = []
+for obj in categoryobjs:
+    if "Pipe" in str(obj):
+        mindiam1 = req_pipe_size()
+        break
+
+
 #  _____
 # |____ |
 #     / /
@@ -293,6 +302,13 @@ for i in range(len(categoryobjs2)):
     types = stypes2[i]
     selections2[category] = types
 
+# Ask for min diam 2
+mindiam2 = []
+for obj in categoryobjs2:
+    if "Pipe" in str(obj):
+        mindiam2 = req_pipe_size()
+        break
+
 #    ___
 #   /   |
 #  / /| |
@@ -307,25 +323,43 @@ if sviewfilt == 'Yes':
 else:
     selected_view = []
 
+
+
 # Get filtered elements to check
-elements = get_elements_of_categories(
-    categories=categoryobjs,
-    view=selected_view,
-    systemtypes=selections1,
-    readout=True
-)
+elements1 = []
+for obj in categoryobjs:
+    selel = get_elements_of_categories(
+        categories=[obj],
+        view=selected_view,
+        systemtypes=selections1,
+        readout=False
+    )
+    filtels = []
+    if "Pipe" in str(obj) and mindiam1:
+        filtels = filter_pipe_size(selel,obj,mindiam1)
+    else:
+        filtels = selel
+    for el in filtels:
+        elements1.append(el)
 
 # Get filtered elements to check against
 elements2=[]
 if categoryobjs2:
-    selels = get_elements_of_categories(
-        categories=categoryobjs2,
-        #view=selected_view,
-        systemtypes=selections2,
-        readout=True
-    )
-    for el in selels:
-        elements2.append(el)
+    for obj in categoryobjs2:
+        selels = get_elements_of_categories(
+            categories=[obj],
+            #view=selected_view,
+            systemtypes=selections2,
+            readout=False
+        )
+        filtels = []
+        if "Pipe" in str(obj) and mindiam2:
+            filtels = filter_pipe_size(selels, obj, mindiam2)
+        else:
+            filtels = selels
+        for el in filtels:
+            elements2.append(el)
+
 # Get structural elements to check against
 structuralelements = []
 if 'Structural' in scategories2:
@@ -333,7 +367,7 @@ if 'Structural' in scategories2:
         categories=structural_categories,
         #view=selected_view,
         linked=True,
-        readout=True
+        readout=False
     )
     for el in selels:
         elements2.append(el)
@@ -348,7 +382,7 @@ if 'Structural' in scategories2:
 solids1 = {}
 bounding1 = {}
 ids_elements1 = {}
-for el in elements:
+for el in elements1:
     solids = get_solid_geometry(el)
     flat_solids = [s for s in solids if isinstance(s, Solid) and s.Volume > 0]
     bounding = el.get_BoundingBox(None)

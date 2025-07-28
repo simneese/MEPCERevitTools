@@ -6,11 +6,12 @@ from symbol import continue_stmt
 # ╩╩ ╩╩  ╚═╝╩╚═ ╩ ╚═╝ IMPORTS
 #==================================================
 from Autodesk.Revit.DB import *
+from Autodesk.Revit.UI.Selection import *
 from Autodesk.Revit.DB.Mechanical import MechanicalSystemType, DuctSystemType
 from Autodesk.Revit.DB.Plumbing import PipingSystemType
 from types import NoneType
 
-from pyrevit import revit, forms
+from pyrevit import revit, forms, script
 from pyrevit.forms import alert
 
 # ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
@@ -194,8 +195,6 @@ def get_elements_of_categories(categories=[],systemtypes=None,view=None,linked=F
     if readout is True:
         print "\n# Filtered Elements: {}".format(len(filtered_elements))+"\n"+"~"*100
 
-    if not filtered_elements:
-        alert("No elements passed the filter!",title="Selection",exitscript=True)
     return filtered_elements
 
 #  _____        _     _      _         _               _  ______
@@ -214,3 +213,32 @@ def get_linked_docs(current_doc):
         if link_doc:  # only if loaded
             linked_docs.append(link_doc)
     return linked_docs
+
+#  _____        _              _    ___  ___        _  _    _         _
+# /  ___|      | |            | |   |  \/  |       | || |  (_)       | |
+# \ `--.   ___ | |  ___   ___ | |_  | .  . | _   _ | || |_  _  _ __  | |  ___
+#  `--. \ / _ \| | / _ \ / __|| __| | |\/| || | | || || __|| || '_ \ | | / _ \
+# /\__/ /|  __/| ||  __/| (__ | |_  | |  | || |_| || || |_ | || |_) || ||  __/
+# \____/  \___||_| \___| \___| \__| \_|  |_/ \__,_||_| \__||_|| .__/ |_| \___|
+#                                                             | |
+#                                                             |_|
+# Prompt user to select multiple elements
+
+def select_multiple(catfilter=[],string=None):
+    """Prompt user to select multiple elements"""
+    try:
+        if type(string) is str:
+            selected_element_ids = uidoc.Selection.PickObjects(ObjectType.Element,string)
+        else:
+            selected_element_ids = uidoc.Selection.PickObjects(ObjectType.Element)
+
+    except:
+        return
+    selected_elements = [doc.GetElement(e_id) for e_id in selected_element_ids]
+    filtered_elements = []
+    if catfilter:
+        for el in selected_elements:
+            for filt in catfilter:
+                if el.Category.BuiltInCategory == filt:
+                    filtered_elements.append(el)
+    return filtered_elements

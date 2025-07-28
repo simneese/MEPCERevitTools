@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __title__ = "Water Demand"
-__highlight__ = "new"
+#__highlight__ = "new"
 __doc__ = """Version = 1.0
 Date    = 2025.07.24
 _________________________________________________________________

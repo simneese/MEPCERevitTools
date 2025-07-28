@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __title__ = "Pipe Volumes"
-__highlight__ = "new"
+#__highlight__ = "new"
 __doc__ = """Version = 1.0
 Date    = 2025.07.22
 _________________________________________________________________
@@ -22,6 +22,7 @@ from Autodesk.Revit.DB.Plumbing import PipingSystemType
 from Autodesk.Revit.UI import UIDocument
 import xlsxwriter
 import os
+import math
 from types import NoneType
 
 from pyrevit import revit, forms
@@ -46,10 +47,11 @@ app   = __revit__.Application
 def get_pipe_volume(pipe):
     try:
         length = pipe.get_Parameter(BuiltInParameter.CURVE_ELEM_LENGTH).AsDouble()
-        diameter = pipe.Diameter  # diameter in feet
+        diameter = pipe.get_Parameter(BuiltInParameter.RBS_PIPE_INNER_DIAM_PARAM).AsDouble()  # diameter in feet
         radius = diameter / 2.0
-        return 3.14159265359 * radius * radius * length
-    except:
+        return math.pi * radius * radius * length
+    except Exception as e:
+        print e
         return 0.0
 
 # Extract base system name, e.g. "CHWR 1" -> "CHWR"
