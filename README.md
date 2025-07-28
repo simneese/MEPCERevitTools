@@ -8,12 +8,22 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
 #### 🔧Mechanical Tools
 - Clash Detection 💥
     - Checks for clashes between selected cateogries. Includes filters for system types. Draws boxes around clash geometry using detail lines.
+- HVAC Zoning 🎨
+    - Creates filled regions for each room in view.
+    - Adds filled regions to color-coded zones.
+#### 💧Plumbing Tools
+- Pipe Volumes 📏
+    - Exports a list of total pipe volumes for each system type.
+- Water Demand 🚿
+    - Enters water fixture type counts into water demand calculator excel sheet.
 #### ⚡Electrical Tools
 - Circuit Lighting 💡
-    - Groups lights and adds them to a circuit based on filled region zoning
+    - Groups lights and adds them to a circuit based on filled region zoning.
 #### 📃BIM Tools
 - Rename 📝
-    - Rename Sheets & Rename Views - use find / replace logic to rename sheets/views. Allows the addition of a prefix / suffix as well
+    - Rename Sheets & Rename Views - use find / replace logic to rename sheets/views. Allows the addition of a prefix / suffix as well.
+- Export Schedules 📩
+    - Export room schedule with zones and loads (from filled regions).
 
 
 ## Installation
@@ -29,9 +39,6 @@ PyRevit Extension with MEP and BIM tools created by Simeon Neese.
   
    <img src="https://github.com/user-attachments/assets/9ba0a7eb-7460-4b70-a18e-3fd87962022b" alt="Alt Text" width="500">
 
-- Click "Reload":
-
-   <img src="https://github.com/user-attachments/assets/7366bc43-d24b-43c5-9ce6-8e45a5a18c87" alt="Alt Text" width="500">
 - Done!
 
 
