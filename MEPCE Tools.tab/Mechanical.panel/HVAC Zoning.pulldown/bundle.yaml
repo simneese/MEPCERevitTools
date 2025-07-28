@@ -1,3 +1,4 @@
 layout:
   - CreateFilledRegions
   - AddToZone
+  - UpdateColors
