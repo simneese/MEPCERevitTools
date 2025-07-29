@@ -286,12 +286,15 @@ if not scategories2:
 # Ask user to select system types from each of the selected categories
 structural_categories = {
     BuiltInCategory.OST_StructuralFraming: [],
+    BuiltInCategory.OST_StructuralFramingSystem: [],
+    BuiltInCategory.OST_StructuralFramingOther: [],
     BuiltInCategory.OST_StructuralColumns: [],
     BuiltInCategory.OST_StructuralFoundation: [],
     BuiltInCategory.OST_StructuralTruss: [],
     BuiltInCategory.OST_StructuralStiffener: [],
     BuiltInCategory.OST_StructuralTendons: [],
-    BuiltInCategory.OST_Columns: []
+    BuiltInCategory.OST_Columns: [],
+    BuiltInCategory.OST_Girder: []
 }
 form2out = select_types_form(scategories2)
 stypes2 = form2out[0]
@@ -367,7 +370,7 @@ if 'Structural' in scategories2:
         categories=structural_categories,
         #view=selected_view,
         linked=True,
-        readout=False
+        readout=True
     )
     for el in selels:
         elements2.append(el)
