@@ -10,7 +10,6 @@ _________________________________________________________________
 How-to:
 -> Click button
 -> Fill out bug report
--> Send report to sneese@mepce.com
 _________________________________________________________________
 Last update:
 - [2025.06.16] - 1.0 RELEASE

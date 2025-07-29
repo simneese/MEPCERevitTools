@@ -332,7 +332,7 @@ for obj in categoryobjs:
         categories=[obj],
         view=selected_view,
         systemtypes=selections1,
-        readout=False
+        readout=True
     )
     filtels = []
     if "Pipe" in str(obj) and mindiam1:
@@ -350,7 +350,7 @@ if categoryobjs2:
             categories=[obj],
             #view=selected_view,
             systemtypes=selections2,
-            readout=False
+            readout=True
         )
         filtels = []
         if "Pipe" in str(obj) and mindiam2:
