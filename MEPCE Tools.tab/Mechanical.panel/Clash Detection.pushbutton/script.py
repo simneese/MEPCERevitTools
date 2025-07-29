@@ -335,7 +335,7 @@ for obj in categoryobjs:
         categories=[obj],
         view=selected_view,
         systemtypes=selections1,
-        readout=True
+        readout=False
     )
     filtels = []
     if "Pipe" in str(obj) and mindiam1:
@@ -353,7 +353,7 @@ if categoryobjs2:
             categories=[obj],
             #view=selected_view,
             systemtypes=selections2,
-            readout=True
+            readout=False
         )
         filtels = []
         if "Pipe" in str(obj) and mindiam2:
@@ -370,7 +370,7 @@ if 'Structural' in scategories2:
         categories=structural_categories,
         #view=selected_view,
         linked=True,
-        readout=True
+        readout=False
     )
     for el in selels:
         elements2.append(el)
