@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __title__   = "Import IES Data"
-__highlight__ = "new"
+#__highlight__ = "new"
 __doc__     = """Version = 1.0
 Date    = 2025.07.28
 _________________________________________________________________
