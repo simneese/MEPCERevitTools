@@ -14,7 +14,7 @@ How-to:
 -> Done!
 _________________________________________________________________
 Last update:
-- [2025.07.28] - 1.0 RELEASE
+- [2025.08.07] - 1.0 RELEASE
 _________________________________________________________________
 Author: Simeon Neese"""
 
@@ -63,6 +63,14 @@ active_view = doc.ActiveView
 view_level = active_view.GenLevel
 
 terminals = FilteredElementCollector(doc,active_view.Id).OfCategory(BuiltInCategory.OST_DuctTerminal).ToElements()
+
+if not terminals:
+    alert("No air terminals in the active view!",
+          sub_msg="Only air terminals in the active view will be updated. Exiting Script.",
+          exitscript=True,
+          title="Update Diffusers"
+          )
+
 sortedterminals = {}
 for terminal in terminals:
     systemclass = terminal.LookupParameter("System Classification").AsString()
