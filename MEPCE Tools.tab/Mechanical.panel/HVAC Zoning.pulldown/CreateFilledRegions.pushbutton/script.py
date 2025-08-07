@@ -143,8 +143,7 @@ for key in room_keys:
         regionkeys = region.keys()
         for key in regionkeys:
             subregion = region[key]
-            nameparam = subregion.LookupParameter("MEPCE Room Name")
-            nameparam.Set(room_name)
-            numberparam = subregion.LookupParameter("MEPCE Room Number")
-            numberparam.Set(room_number)
+            nameparam = subregion.LookupParameter("MEPCE Room Name").Set(room_name)
+            numberparam = subregion.LookupParameter("MEPCE Room Number").Set(room_number)
+            subregion.LookupParameter("MEPCE Update Region").Set(1)
 t.Commit()

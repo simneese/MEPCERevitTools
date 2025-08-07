@@ -84,6 +84,23 @@ systemnames = sortedterminals.keys()
 #   / /
 # ./ /___
 # \_____/
+# User input system types
+selsystems = forms.SelectFromList.show(
+    systemnames,
+    multiselect = True,
+    title='Select system types to update',
+    button_name='Select'
+)
+
+if not selsystems:
+    alert("No systems selected. Exiting script.",exitscript=True)
+
+#  _____
+# |____ |
+#     / /
+#     \ \
+# .___/ /
+# \____/
 # Get Filled Regions On Level With Room Airflow Parameter
 allregions = FilteredElementCollector(doc).OfClass(FilledRegion).ToElements()
 regions = [region for region in allregions if doc.GetElement(region.OwnerViewId).GenLevel.Name == view_level.Name and region.LookupParameter("MEPCE Room Airflow").HasValue]
@@ -97,7 +114,10 @@ for idx_f,face in enumerate(faces):
     supplyair = room.LookupParameter("MEPCE Room Airflow").AsDouble()
     exhaustair = room.LookupParameter("MEPCE Room Exhaust").AsDouble()
     ventair = room.LookupParameter("MEPCE Room Ventilation").AsDouble()
-    for system in systemnames:
+    update = room.LookupParameter("MEPCE Update Region").AsInteger()
+    if update == 0:
+        continue
+    for system in selsystems:
         roomgroup = []
         systerminals = sortedterminals[system]
         for term in systerminals:

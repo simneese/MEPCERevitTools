@@ -88,12 +88,12 @@ def color_picker(index):
     5 - Cyans
     """
     colorsets = [
-        [Color(104,14,14),Color(227,91,91)],      # Reds
-        [Color(20,20,77),Color(91,98,227)],       # Blues
-        [Color(69,43,12),Color(252,140,3)],     # Oranges
-        [Color(34,69,23),Color(65,252,3)],      # Greens
-        [Color(74,10,69),Color(242,5,222)],     # Purples
-        [Color(22,79,77),Color(0,252,242)]      # Cyans
+        [Color(104,14,14),Color(227,91,91)],       # Reds
+        [Color(20,20,77),Color(91,98,227)],        # Blues
+        [Color(69,43,12),Color(250,155,60)],       # Oranges
+        [Color(34,69,23),Color(114,237,124)],      # Greens
+        [Color(74,10,69),Color(245,110,240)],      # Purples
+        [Color(22,79,77),Color(162,245,243)]       # Cyans
     ]
 
     return colorsets[index]
