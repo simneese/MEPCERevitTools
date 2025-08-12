@@ -218,3 +218,31 @@ def create_filled_region_from_room(room, view, region_type):
     if not boundaries:
         return False
     return filledregion
+
+#  _____        _     _____
+# |  __ \      | |   /  __ \
+# | |  \/  ___ | |_  | /  \/  ___   _ __  _ __    ___  _ __  ___
+# | | __  / _ \| __| | |     / _ \ | '__|| '_ \  / _ \| '__|/ __|
+# | |_\ \|  __/| |_  | \__/\| (_) || |   | | | ||  __/| |   \__ \
+#  \____/ \___| \__|  \____/ \___/ |_|   |_| |_| \___||_|   |___/
+# Get filled region corners
+def get_filled_region_corners(filled_region):
+    """Return unique XYZ corner points from a filled region's boundaries."""
+    corners = []
+
+    boundaries = filled_region.GetBoundaries()  # IList<IList<Curve>>
+    for loop in boundaries:
+        for curve in loop:
+            corners.append(curve.GetEndPoint(0))
+            corners.append(curve.GetEndPoint(1))
+
+    # Deduplicate points
+    unique_corners = []
+    seen = set()
+    for p in corners:
+        key = (round(p.X, 6), round(p.Y, 6), round(p.Z, 6))
+        if key not in seen:
+            seen.add(key)
+            unique_corners.append(p)
+
+    return unique_corners

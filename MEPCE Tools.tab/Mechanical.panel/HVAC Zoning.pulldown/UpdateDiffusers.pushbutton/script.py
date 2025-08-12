@@ -2,7 +2,7 @@
 __title__   = "Update Diffuser CFM"
 __highlight__ = "new"
 __doc__     = """Version = 1.0
-Date    = 2025.07.28
+Date    = 2025.08.07
 _________________________________________________________________
 Description:
 Update airflow for all diffusers in active view. Requires zone setup with filled regions and IES data imported using HVAC Zoning buttons.
@@ -111,7 +111,7 @@ if not selsystems:
 # \____/
 # Get Filled Regions On Level With Room Airflow Parameter
 allregions = FilteredElementCollector(doc).OfClass(FilledRegion).ToElements()
-regions = [region for region in allregions if doc.GetElement(region.OwnerViewId).GenLevel.Name == view_level.Name and region.LookupParameter("MEPCE Room Airflow").HasValue]
+regions = [region for region in allregions if doc.GetElement(region.OwnerViewId).GenLevel.Name == view_level.Name]
 faces = get_faces([regions])[0]
 
 t = Transaction(doc,"Update Diffuser CFM's")

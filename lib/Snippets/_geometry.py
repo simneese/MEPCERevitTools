@@ -117,3 +117,19 @@ def project_point_to_plane(point, plane_origin, plane_normal):
     vec = point - plane_origin
     distance = vec.DotProduct(plane_normal)
     return point - distance * plane_normal
+
+#  _____        _      ___                                          ______         _         _
+# |  __ \      | |    / _ \                                         | ___ \       (_)       | |
+# | |  \/  ___ | |_  / /_\ \__   __  ___  _ __   __ _   __ _   ___  | |_/ /  ___   _  _ __  | |_
+# | | __  / _ \| __| |  _  |\ \ / / / _ \| '__| / _` | / _` | / _ \ |  __/  / _ \ | || '_ \ | __|
+# | |_\ \|  __/| |_  | | | | \ V / |  __/| |   | (_| || (_| ||  __/ | |    | (_) || || | | || |_
+#  \____/ \___| \__| \_| |_/  \_/   \___||_|    \__,_| \__, | \___| \_|     \___/ |_||_| |_| \__|
+#                                                       __/ |
+#                                                      |___/
+# Get average of two points
+def get_point_average(MIN,MAX):
+    """Input MIN and MAX points to get average point (can be for a bounding box or any two points)"""
+    avgx = (MIN.X + MAX.X)/2
+    avgy = (MIN.Y + MAX.Y)/2
+    avgz = (MIN.Z + MAX.Z)/2
+    return XYZ(avgx,avgy,avgz)

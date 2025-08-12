@@ -3,4 +3,5 @@ layout:
   - AddToZone
   - UpdateColors
   - ImportIES
+  - ExhaustCalc
   - UpdateDiffusers
