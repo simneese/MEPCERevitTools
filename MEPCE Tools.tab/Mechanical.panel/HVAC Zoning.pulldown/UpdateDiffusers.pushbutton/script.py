@@ -111,7 +111,14 @@ if not selsystems:
 # \____/
 # Get Filled Regions On Level With Room Airflow Parameter
 allregions = FilteredElementCollector(doc).OfClass(FilledRegion).ToElements()
-regions = [region for region in allregions if doc.GetElement(region.OwnerViewId).GenLevel.Name == view_level.Name]
+regions = []
+for region in allregions:
+    if type(doc.GetElement(region.OwnerViewId).GenLevel) is NoneType:
+        continue
+    else:
+        regions.append(region)
+
+regions = [region for region in regions if doc.GetElement(region.OwnerViewId).GenLevel.Name == view_level.Name]
 faces = get_faces([regions])[0]
 
 t = Transaction(doc,"Update Diffuser CFM's")
@@ -123,6 +130,9 @@ for idx_f,face in enumerate(faces):
     exhaustair = room.LookupParameter("MEPCE Room Exhaust").AsDouble()
     ventair = room.LookupParameter("MEPCE Room Ventilation").AsDouble()
     update = room.LookupParameter("MEPCE Update Region").AsInteger()
+    number = room.LookupParameter("MEPCE Room Number").AsString()
+    if not number:
+        continue
     if update == 0:
         continue
     for system in selsystems:
