@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 __title__   = "Update Diffuser CFM"
 __highlight__ = "new"
-__doc__     = """Version = 1.0
-Date    = 2025.08.07
+__doc__     = """Version = 1.1
+Date    = 2025.08.14
 _________________________________________________________________
 Description:
 Update airflow for all diffusers in active view. Requires zone setup with filled regions and IES data imported using HVAC Zoning buttons.
 _________________________________________________________________
 How-to:
 -> Set up filled regions using the "Create Filled Regions" button
--> Update filled region parameters using the "Import IES Data" button
+-> Update filled region parameters using the "Import IES Data" button and the "Calculate Exhaust" button
 -> Click button
+-> Select systems to update
+-> Enter whole number to round CFM value up to
 -> Done!
 _________________________________________________________________
 Last update:
+- [2025.08.14] - 1.1 Added rounding
 - [2025.08.07] - 1.0 RELEASE
 _________________________________________________________________
 Author: Simeon Neese"""
