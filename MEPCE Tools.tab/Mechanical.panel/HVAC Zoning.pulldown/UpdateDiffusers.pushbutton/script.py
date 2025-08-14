@@ -32,6 +32,8 @@ from Autodesk.Revit.DB import *
 
 from types import NoneType
 
+from rpw.ui.forms import (FlexForm, Label, TextBox, Separator, Button)
+
 # ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
 # ╚╗╔╝╠═╣╠╦╝║╠═╣╠╩╗║  ║╣ ╚═╗
 #  ╚╝ ╩ ╩╩╚═╩╩ ╩╚═╝╩═╝╚═╝╚═╝
@@ -51,6 +53,8 @@ from Snippets._filledregions import get_faces
 # ║║║╠═╣║║║║
 # ╩ ╩╩ ╩╩╝╚╝
 #==================================================
+
+DEBUGMODE = False
 
 #  __
 # /  |
@@ -103,6 +107,13 @@ selsystems = forms.SelectFromList.show(
 if not selsystems:
     alert("No systems selected. Exiting script.",exitscript=True)
 
+components = [Label('Round to the nearest:'), TextBox('rounding'),
+              Separator(), Button('Continue')]
+form = FlexForm('Input Rounding', components)
+form.show()
+user_inputs = form.values
+rounding = float(user_inputs['rounding'])/60
+
 #  _____
 # |____ |
 #     / /
@@ -135,6 +146,9 @@ for idx_f,face in enumerate(faces):
         continue
     if update == 0:
         continue
+    if DEBUGMODE is True:
+        print "\nRoom: {} {}".format(number, room.LookupParameter("MEPCE Room Name").AsString())
+        print "Supply: {} CFM\nVentilation: {} CFM\nExhaust: {} CFM".format(supplyair, ventair, exhaustair)
     for system in selsystems:
         roomgroup = []
         systerminals = sortedterminals[system]
@@ -145,19 +159,21 @@ for idx_f,face in enumerate(faces):
             else:
                 continue
         termcount = len(roomgroup)
+        if DEBUGMODE is True:
+            print "{} Terminals: {}".format(system,termcount)
         if not termcount > 0:
             continue
         if system == "Supply Air" :
             for term in roomgroup:
-                term.LookupParameter("Air Terminal Air Flow").Set(supplyair/termcount)
+                term.LookupParameter("Air Terminal Air Flow").Set(math.ceil(supplyair/termcount/rounding)*rounding)
         if system == "Return Air":
             for term in roomgroup:
-                term.LookupParameter("Air Terminal Air Flow").Set(supplyair/termcount)
+                term.LookupParameter("Air Terminal Air Flow").Set(math.ceil(supplyair/termcount/rounding)*rounding)
                 term.LookupParameter("Comments").Set("-")
         if system == "Exhaust Air" :
             for term in roomgroup:
-                term.LookupParameter("Air Terminal Air Flow").Set(exhaustair/termcount)
+                term.LookupParameter("Air Terminal Air Flow").Set(math.ceil(exhaustair/termcount/rounding)*rounding)
         if system == "Outside Air" :
             for term in roomgroup:
-                term.LookupParameter("Air Terminal Air Flow").Set(ventair/termcount)
+                term.LookupParameter("Air Terminal Air Flow").Set(math.ceil(ventair/termcount/rounding)*rounding)
 t.Commit()
