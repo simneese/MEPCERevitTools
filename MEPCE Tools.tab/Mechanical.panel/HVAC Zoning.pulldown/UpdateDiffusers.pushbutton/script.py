@@ -70,6 +70,7 @@ active_view = doc.ActiveView
 view_level = active_view.GenLevel
 
 terminals = FilteredElementCollector(doc,active_view.Id).OfCategory(BuiltInCategory.OST_DuctTerminal).ToElements()
+terminals = [terminal for terminal in terminals if not "No Plenum" in terminal.LookupParameter("Family and Type").AsValueString()]
 
 if not terminals:
     alert("No air terminals in the active view!",
